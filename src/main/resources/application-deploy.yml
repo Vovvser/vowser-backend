@@ -1,0 +1,15 @@
+server:
+  forward-headers-strategy: native
+
+spring:
+  jpa:
+    hibernate.ddl-auto: validate
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+logging:
+  level:
+    ROOT: INFO
+  file:
+    name: /var/log/vowser/backend.log

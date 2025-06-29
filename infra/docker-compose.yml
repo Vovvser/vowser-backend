@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: vowser/backend:dev
+    env_file:
+      - env/backend.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+      redis:
+        condition: service_started
+      playwright:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      retries: 5
+
+  mariadb:
+    image: mariadb:11
+    env_file: env/db.env
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin","ping","-proot"]
+      interval: 10s
+      retries: 5
+
+  mongodb:
+    image: mongo:7
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7
+    command: ["redis-server","--appendonly","yes"]
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.53.0-noble
+    shm_size: "2gb"
+    init: true
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npx -y playwright@1.53.0 run-server \
+          --port 3000 --host 0.0.0.0
+    ports:
+      - "3000:3000"
+    security_opt:
+      - seccomp=unconfined
+
+volumes:
+  mariadb_data:
+  mongo_data:

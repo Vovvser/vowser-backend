@@ -1,0 +1,26 @@
+services:
+  backend:
+    image: ghcr.io/myorg/vowser-backend:${GIT_COMMIT_SHA}
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "512M"
+    restart: unless-stopped
+
+  mariadb:
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD_FILE: /run/secrets/mariadb_root_pw
+    secrets:
+      - mariadb_root_pw
+
+  playwright:
+    security_opt:
+      - seccomp:./seccomp_profile.json
+    restart: unless-stopped
+    ports: []
+
+secrets:
+  mariadb_root_pw:
+    file: ./secrets/mariadb_root_pw.txt
