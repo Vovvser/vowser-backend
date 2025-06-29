@@ -38,9 +38,9 @@ management:
 playwright:
   ws-endpoint: ${PLAYWRIGHT_WS_ENDPOINT}
 
-ai:
-  gemini:
-    api-key: ${GEMINI_API_KEY}
+#ai:
+#  gemini:
+#    api-key: ${GEMINI_API_KEY}
 
 logging:
   pattern:

@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   backend:
     image: ghcr.io/myorg/vowser-backend:${GIT_COMMIT_SHA}
@@ -7,20 +9,70 @@ services:
           cpus: "1"
           memory: "512M"
     restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      playwright:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PLAYWRIGHT_WS_ENDPOINT: ws://playwright:3000/
 
   mariadb:
-    restart: unless-stopped
+    image: mariadb:11
     environment:
+      MARIADB_DATABASE: vowser
+      MARIADB_USER: vowser
+      MARIADB_PASSWORD_FILE: /run/secrets/mariadb_user_pw
       MARIADB_ROOT_PASSWORD_FILE: /run/secrets/mariadb_root_pw
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD-SHELL",
+              "mysqladmin ping -uroot -p$(cat /run/secrets/mariadb_root_pw)" ]
+      interval: 10s
+      retries: 5
     secrets:
       - mariadb_root_pw
+      - mariadb_user_pw
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    command: [ "redis-server", "--appendonly", "yes" ]
+    restart: unless-stopped
 
   playwright:
+    image: mcr.microsoft.com/playwright:v1.53.0-noble
+    shm_size: "2gb"
+    init: true
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npx -y playwright@1.53.0 run-server \
+          --port 3000 --host 0.0.0.0
+    ports: []
     security_opt:
       - seccomp:./seccomp_profile.json
     restart: unless-stopped
-    ports: []
 
 secrets:
   mariadb_root_pw:
     file: ./secrets/mariadb_root_pw.txt
+  mariadb_user_pw:
+    file: ./secrets/mariadb_user_pw.txt
+
+volumes:
+  mariadb_data:
+  mongo_data:

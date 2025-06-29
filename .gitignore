@@ -42,6 +42,7 @@ out/
 ### Infra ###
 *.env
 infra/env/
+infra/secrets/
 
 docker-compose.override.yml
 infra/**/logs/

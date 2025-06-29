@@ -2,8 +2,8 @@
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /workspace
 COPY . .
-RUN ./gradlew :infrastructure:bootJar \
-    && mv infrastructure/build/libs/*.jar app.jar
+RUN ./gradlew bootJar \
+    && mv build/libs/*.jar app.jar
 
 # ───────── Runtime stage ─────────
 FROM eclipse-temurin:21-jre-jammy AS run
