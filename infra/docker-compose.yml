@@ -29,7 +29,6 @@ services:
   mariadb:
     image: mariadb:11
     env_file: ../.env
-    restart: always
     volumes:
       - mariadb_data:/var/lib/mysql
     ports:
@@ -43,7 +42,6 @@ services:
 
   mongodb:
     image: mongo:7
-    restart: always
     volumes:
       - mongo_data:/data/db
     ports:
@@ -57,7 +55,6 @@ services:
 
   redis:
     image: redis:7
-    restart: always
     command: ["redis-server","--appendonly","yes"]
     volumes:
       - redis_data:/data
@@ -70,7 +67,6 @@ services:
 
   playwright:
     image: mcr.microsoft.com/playwright:v1.53.0-noble
-    restart: always
     shm_size: "2gb"
     init: true
     command:
