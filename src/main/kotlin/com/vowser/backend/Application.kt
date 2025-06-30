@@ -1,5 +1,6 @@
 package com.vowser.backend
 
+import io.github.cdimascio.dotenv.Dotenv
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
@@ -7,5 +8,15 @@ import org.springframework.boot.runApplication
 class Application
 
 fun main(args: Array<String>) {
-	runApplication<Application>(*args)
+    val dotenv = Dotenv.configure()
+        .directory(System.getProperty("user.dir"))
+        .filename(".env")
+        .ignoreIfMissing()
+        .load()
+
+    dotenv.entries().forEach { entry ->
+        System.setProperty(entry.key, entry.value)
+    }
+
+    runApplication<Application>(*args)
 }

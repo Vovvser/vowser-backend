@@ -39,6 +39,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.3")
+    implementation("io.github.cdimascio:java-dotenv:5.2.2")
 
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
