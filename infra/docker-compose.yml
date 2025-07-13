@@ -15,12 +15,8 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
-      mongodb:
-        condition: service_healthy
       redis:
         condition: service_healthy
-      playwright:
-        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4001/actuator/health"]
       interval: 30s
@@ -40,19 +36,6 @@ services:
       retries: 5
       start_period: 30s
 
-  mongodb:
-    image: mongo:7
-    volumes:
-      - mongo_data:/data/db
-    ports:
-      - "27017:27017"
-    healthcheck:
-      test: [ "CMD", "mongosh", "--eval", "db.runCommand('ping').ok" ]
-      interval: 10s
-      retries: 5
-      timeout: 5s
-      start_period: 10s
-
   redis:
     image: redis:7
     command: ["redis-server","--appendonly","yes"]
@@ -65,22 +48,6 @@ services:
       interval: 10s
       retries: 5
 
-  playwright:
-    image: mcr.microsoft.com/playwright:v1.53.0-noble
-    shm_size: "2gb"
-    init: true
-    command:
-      - /bin/sh
-      - -c
-      - |
-        npx -y playwright@1.53.0 run-server \
-          --port 3000 --host 0.0.0.0
-    ports:
-      - "3000:3000"
-    security_opt:
-      - seccomp=unconfined
-
 volumes:
   mariadb_data:
-  mongo_data:
   redis_data:

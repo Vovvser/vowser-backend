@@ -17,8 +17,6 @@ spring:
       minimum-idle: 5
 
   data:
-    mongodb:
-      uri: ${SPRING_DATA_MONGODB_URI}
     redis:
       host: ${SPRING_DATA_REDIS_HOST:redis}
       port: ${SPRING_DATA_REDIS_PORT:6379}

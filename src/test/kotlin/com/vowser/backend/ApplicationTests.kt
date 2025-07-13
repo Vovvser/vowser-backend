@@ -7,7 +7,7 @@ import org.springframework.test.context.ActiveProfiles
 
 @Import(TestcontainersConfiguration::class)
 @SpringBootTest
-@ActiveProfiles("test")   // ← 추가
+@ActiveProfiles("test")
 class ApplicationTests {
 
 	@Test
