@@ -79,7 +79,7 @@ mcp:
 
 The server will start on port `8080` by default.
 
-## ↔️ API Endpoints
+## API Endpoints
 
 ### REST API
 
@@ -180,7 +180,7 @@ mcp:
 
 서버는 기본적으로 `8080` 포트에서 시작됩니다.
 
-## ↔️ API 엔드포인트
+## API 엔드포인트
 
 ### REST API
 
