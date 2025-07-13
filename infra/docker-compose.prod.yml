@@ -20,36 +20,11 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/vowser?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
-      SPRING_DATASOURCE_USERNAME: vowser
-      SPRING_DATASOURCE_PASSWORD: ${MARIADB_PASSWORD}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       JENKINS_PORT: ${JENKINS_PORT}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}
-    networks:
-      - vowser-net
-
-  mariadb:
-    image: mariadb:11
-    environment:
-      MARIADB_DATABASE: vowser
-      MARIADB_USER: vowser
-      MARIADB_PASSWORD_FILE: /run/secrets/mariadb_user_pw
-      MARIADB_ROOT_PASSWORD_FILE: /run/secrets/mariadb_root_pw
-    volumes:
-      - mariadb_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD-SHELL", "bash -c 'healthcheck.sh --connect'"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    secrets:
-      - mariadb_root_pw
-      - mariadb_user_pw
-    restart: unless-stopped
     networks:
       - vowser-net
 
@@ -70,12 +45,5 @@ services:
     networks:
       - vowser-net
 
-secrets:
-  mariadb_root_pw:
-    file: ./secrets/mariadb_root_pw.txt
-  mariadb_user_pw:
-    file: ./secrets/mariadb_user_pw.txt
-
 volumes:
-  mariadb_data:
   redis_data:

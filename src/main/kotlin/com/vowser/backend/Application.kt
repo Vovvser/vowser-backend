@@ -2,9 +2,10 @@ package com.vowser.backend
 
 import io.github.cdimascio.dotenv.Dotenv
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebAutoConfiguration
 import org.springframework.boot.runApplication
 
-@SpringBootApplication
+@SpringBootApplication(exclude = [SpringDataWebAutoConfiguration::class])
 class Application
 
 fun main(args: Array<String>) {

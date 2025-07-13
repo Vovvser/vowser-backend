@@ -1,13 +1,14 @@
 package com.vowser.backend
 
 import org.junit.jupiter.api.Test
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
-import org.springframework.test.context.ActiveProfiles
 
 @Import(TestcontainersConfiguration::class)
-@SpringBootTest
-@ActiveProfiles("test")
+@SpringBootTest(properties = ["spring.cloud.compatibility-verifier.enabled=false"])
+@EnableAutoConfiguration(exclude = [SpringDataWebAutoConfiguration::class])
 class ApplicationTests {
 
 	@Test

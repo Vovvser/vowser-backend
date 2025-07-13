@@ -22,8 +22,6 @@ pipeline {
             steps {
                 script {
                     withCredentials([
-                        string(credentialsId: 'VOWSER_MARIADB_PASSWORD', variable: 'MARIADB_PASSWORD_VAR'),
-                        string(credentialsId: 'VOWSER_MARIADB_ROOT_PASSWORD', variable: 'MARIADB_ROOT_PASSWORD_VAR'),
                         string(credentialsId: 'VOWSER_GEMINI_API_KEY', variable: 'GEMINI_API_KEY_VAR'),
                         string(credentialsId: 'VOWSER_GOOGLE_CREDENTIALS', variable: 'GOOGLE_CREDENTIALS_VAR')
                     ]) {
@@ -34,8 +32,6 @@ pipeline {
                         def googleCredentialsPath = sh(script: 'pwd', returnStdout: true).trim() + '/google-credentials.json'
 
                         sh """
-                            export MARIADB_PASSWORD=${MARIADB_PASSWORD_VAR}
-                            export MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD_VAR}
                             export GEMINI_API_KEY=${GEMINI_API_KEY_VAR}
                             export GOOGLE_APPLICATION_CREDENTIALS=${googleCredentialsPath}
 
