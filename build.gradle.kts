@@ -40,6 +40,8 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("io.github.cdimascio:java-dotenv:5.2.2")
+    implementation("com.google.cloud:google-cloud-speech:4.30.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 

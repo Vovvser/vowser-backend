@@ -31,4 +31,21 @@ class ControlService {
             }
         }
     }
+
+    // MCP 서버에서 받은 메시지를 클라이언트로 중계
+    fun relayMcpResponse(messageJson: String) {
+        val session = sessions.values.lastOrNull()
+        session?.let {
+            if (it.isOpen) {
+                try {
+                    it.sendMessage(TextMessage(messageJson))
+                    println("MCP 서버 응답을 클라이언트로 중계 완료")
+                } catch (e: Exception) {
+                    println("MCP 응답 중계 실패: ${e.message}")
+                }
+            } else {
+                println("클라이언트 WebSocket 세션이 닫혀있습니다")
+            }
+        } ?: println("연결된 클라이언트 세션이 없습니다")
+    }
 }
