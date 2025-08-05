@@ -31,6 +31,17 @@ management:
       exposure:
         include: health,info
 
+# Google Cloud Platform 설정
+gcp:
+  project-id: "sixth-radar-463501-n1"
+  location: "global"
+
+# Google Cloud 자격 증명
+google:
+  cloud:
+    credentials:
+      json: ${GOOGLE_CREDENTIALS_JSON}
+
 
 #ai:
 #  gemini:

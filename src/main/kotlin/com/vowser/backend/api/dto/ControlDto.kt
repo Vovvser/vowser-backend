@@ -16,6 +16,5 @@ sealed class Content
 data class TextContent(val type: String = "text", val text: String) : Content()
 data class ImageContent(val type: String = "image", val data: String, val mimeType: String) : Content()
 
-// --- 각 Tool의 인자(Args) DTO ---
 data class ClickArgs(val elementId: String)
 data class GoBackArgs(val placeholder: String? = null)
