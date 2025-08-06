@@ -75,6 +75,7 @@ class McpWebSocketClient(
             "data" to mapOf(
                 "query" to transcript,
                 "limit" to 3,
+                "sessionId" to sessionId
             )
         )
 
