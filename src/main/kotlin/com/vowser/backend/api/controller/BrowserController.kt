@@ -1,5 +1,7 @@
 package com.vowser.backend.api.controller
 
+import com.vowser.backend.api.dto.NavigationPathRequest
+import com.vowser.backend.api.dto.NavigationPathResponse
 import com.vowser.backend.application.service.ControlService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -9,10 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @Tag(name = "Browser Control", description = "WebSocket을 통한 실시간 브라우저 제어 API")
 @RestController
@@ -49,9 +48,13 @@ class BrowserController(
         )
         @RequestParam url: String
     ): Map<String, String> {
-        val command = mapOf(
-            "type" to "com.vowser.client.websocket.dto.BrowserCommand.Navigate",
+        val commandData = mapOf(
+            "type" to "navigate",
             "url" to url
+        )
+        val command = mapOf(
+            "type" to "browser_command",
+            "data" to commandData
         )
         controlService.sendCommandToClient(command)
         return mapOf("message" to "Navigate command sent to client with URL: $url")
@@ -78,8 +81,10 @@ class BrowserController(
     )
     @GetMapping("/go-back")
     fun goBack(): Map<String, String> {
+        val commandData = mapOf("type" to "go_back")
         val command = mapOf(
-            "type" to "com.vowser.client.websocket.dto.BrowserCommand.GoBack"
+            "type" to "browser_command",
+            "data" to commandData
         )
         controlService.sendCommandToClient(command)
         return mapOf("message" to "GoBack command sent to client.")
@@ -105,10 +110,48 @@ class BrowserController(
     )
     @GetMapping("/go-forward")
     fun goForward(): Map<String, String> {
+        val commandData = mapOf("type" to "go_forward")
         val command = mapOf(
-            "type" to "com.vowser.client.websocket.dto.BrowserCommand.GoForward"
+            "type" to "browser_command",
+            "data" to commandData
         )
         controlService.sendCommandToClient(command)
         return mapOf("message" to "GoForward command sent to client.")
+    }
+
+    @Operation(
+        summary = "복합 네비게이션 경로 전송",
+        description = "여러 단계의 브라우저 자동화 작업을 순차적으로 실행합니다. (페이지 이동, 요소 클릭, 텍스트 입력 등)"
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "네비게이션 경로가 성공적으로 전송됨",
+                content = [Content(
+                    mediaType = "application/json",
+                    schema = Schema(implementation = NavigationPathResponse::class),
+                    examples = [ExampleObject(
+                        value = """{"message": "Navigation path sent to client", "pathId": "test_path_Google Search_query", "stepCount": 3}"""
+                    )]
+                )]
+            )
+        ]
+    )
+    @PostMapping("/send-navigation-path")
+    fun sendNavigationPath(
+        @RequestBody navigationPath: NavigationPathRequest
+    ): NavigationPathResponse {
+        val command = mapOf(
+            "type" to "navigation_path",
+            "data" to navigationPath
+        )
+        controlService.sendCommandToClient(command)
+
+        return NavigationPathResponse(
+            message = "Navigation path sent to client",
+            pathId = navigationPath.pathId,
+            stepCount = navigationPath.steps.size
+        )
     }
 }
