@@ -71,10 +71,10 @@ class McpWebSocketClient(
         }
 
         val message = mapOf(
-            "type" to "process_voice_command",
+            "type" to "search_path",
             "data" to mapOf(
-                "transcript" to transcript,
-                "sessionId" to sessionId
+                "query" to transcript,
+                "limit" to 3,
             )
         )
 
