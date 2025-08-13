@@ -2,12 +2,23 @@ package com.vowser.backend.api.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
-data class NavigationPathRequest(
+// 클라이언트로 보낼 최상위 응답 객체
+data class AllPathsResponse(
+    val query: String,
+    val paths: List<PathDetail>
+)
+
+// 상세 정보를 포함한 개별 경로 DTO
+data class PathDetail(
     val pathId: String,
-    val description: String,
+    val score: Double?,
+    val total_weight: Int?,
+    val last_used: String?,
+    val estimated_time: Double?,
     val steps: List<NavigationStep>
 )
 
+// 경로의 한 단계를 나타내는 DTO
 data class NavigationStep(
     val url: String,
     val title: String,
@@ -33,29 +44,24 @@ data class McpSearchPathResult(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class McpSearchPathData(
     val query: String,
-    val matched_paths: List<McpMatchedPath>
+    val matched_paths: List<McpMatchedPath>? = null,
+    val message: String? = null
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class McpMatchedPath(
     val pathId: String,
-    val relevance_score: Double?,
+    val score: Double?,
     val total_weight: Int?,
     val last_used: String?,
-    val estimated_time: Double?, // JSON에서 null일 수 있으므로 Nullable
+    val estimated_time: Double?,
     val steps: List<McpStep>
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class McpStep(
-    val order: Int,
-    val type: String,
     val title: String,
-    val url: String,
     val action: String,
-    val domain: String? = null,
-    val pageId: String? = null,
-    val selector: String? = null,
-    val anchorPoint: String? = null,
-    val textLabels: List<String>? = null
+    val url: String,
+    val selector: String? = null
 )
