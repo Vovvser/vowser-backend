@@ -1,6 +1,6 @@
 package com.vowser.backend.api.controller
 
-import com.vowser.backend.api.dto.NavigationPathRequest
+import com.vowser.backend.api.dto.AllPathsResponse
 import com.vowser.backend.api.dto.NavigationPathResponse
 import com.vowser.backend.application.service.ControlService
 import io.swagger.v3.oas.annotations.Operation
@@ -121,7 +121,7 @@ class BrowserController(
 
     @Operation(
         summary = "복합 네비게이션 경로 전송",
-        description = "여러 단계의 브라우저 자동화 작업을 순차적으로 실행합니다. (페이지 이동, 요소 클릭, 텍스트 입력 등)"
+        description = "여러 경로가 포함된 AllPathsResponse를 받아 클라이언트에게 전송합니다."
     )
     @ApiResponses(
         value = [
@@ -140,18 +140,17 @@ class BrowserController(
     )
     @PostMapping("/send-navigation-path")
     fun sendNavigationPath(
-        @RequestBody navigationPath: NavigationPathRequest
-    ): NavigationPathResponse {
+        @RequestBody allPaths: AllPathsResponse
+    ): Map<String, Any> {
         val command = mapOf(
-            "type" to "navigation_path",
-            "data" to navigationPath
+            "type" to "all_navigation_paths",
+            "data" to allPaths
         )
         controlService.sendCommandToClient(command)
 
-        return NavigationPathResponse(
-            message = "Navigation path sent to client",
-            pathId = navigationPath.pathId,
-            stepCount = navigationPath.steps.size
+        return mapOf(
+            "message" to "All navigation paths for query '${allPaths.query}' sent.",
+            "pathCount" to allPaths.paths.size
         )
     }
 }

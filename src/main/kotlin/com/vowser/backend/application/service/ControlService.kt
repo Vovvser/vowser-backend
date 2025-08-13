@@ -52,11 +52,11 @@ class ControlService {
             val mcpResponse = objectMapper.readValue<McpSearchPathResult>(messageJson)
 
             if (mcpResponse.type == "search_path_result") {
-                val navigationPath = convertMcpToNavigationPath(mcpResponse)
-                if (navigationPath != null) {
+                val allPathsResponse = convertMcpToAllPathsResponse(mcpResponse)
+                if (allPathsResponse != null && allPathsResponse.paths.isNotEmpty()) {
                     val command = mapOf(
-                        "type" to "navigation_path",
-                        "data" to navigationPath
+                        "type" to "all_navigation_paths",
+                        "data" to allPathsResponse
                     )
                     val jsonCommand = objectMapper.writeValueAsString(command)
                     session.sendMessage(TextMessage(jsonCommand))
@@ -74,97 +74,92 @@ class ControlService {
         }
     }
 
-    private fun convertMcpToNavigationPath(mcpResult: McpSearchPathResult): NavigationPathRequest? {
-        // 성공 상태이고, 유효한 경로가 1개 이상 있을 때만 변환
-        if (mcpResult.status != "success" || mcpResult.data.matched_paths?.isEmpty() != false) {
-            println("변환 실패: status=${mcpResult.status}, paths=${mcpResult.data.matched_paths?.size ?: 0}, message=${mcpResult.data.message}")
+    /**
+     * MCP 응답을 AllPathsResponse DTO로 변환하는 함수
+     */
+    private fun convertMcpToAllPathsResponse(mcpResult: McpSearchPathResult): AllPathsResponse? {
+        if (mcpResult.status != "success" || mcpResult.data.matched_paths.isNullOrEmpty()) {
+            println("변환 실패: status=${mcpResult.status}, paths=${mcpResult.data.matched_paths?.size ?: 0}")
             return null
         }
 
-        // example.com 테스트 경로 필터링 후 최적 경로 선택
-        val validPaths = mcpResult.data.matched_paths!!.filter { path ->
-            val startUrl = path.steps.firstOrNull()?.url?.lowercase() ?: ""
-            !startUrl.contains("example.com")
+        // example.com 테스트 경로 필터링
+        val validPaths = mcpResult.data.matched_paths.filter { path ->
+            !path.steps.firstOrNull()?.url.orEmpty().contains("example.com", ignoreCase = true)
         }
-        
+
         if (validPaths.isEmpty()) {
             println("변환 실패: 모든 경로가 example.com 테스트 경로입니다.")
             return null
         }
-        
-        val bestPath = validPaths.maxByOrNull { it.score ?: 0.0 }!!
-        println("최적 경로 변환 시작: pathId=${bestPath.pathId}, score=${bestPath.score}, steps=${bestPath.steps.size}개 (example.com 제외 후 ${validPaths.size}/${mcpResult.data.matched_paths!!.size}개 경로 중 선택)")
 
-        val navigationSteps = bestPath.steps
-            .mapIndexed { index, step -> step to index } // 순서 보장을 위해 인덱스 사용
-            .sortedBy { it.second }
-            .map { it.first }
-            .map { mcpStep ->
-                // MCP의 action 필드를 우선으로 하고, 없으면 type과 selector로 판단
-                val clientAction = when {
-                    // MCP action 필드가 명확히 navigate 관련인 경우
-                    mcpStep.action.contains("접속", ignoreCase = true) || 
-                    mcpStep.action.contains("이동", ignoreCase = true) ||
-                    mcpStep.action.contains("navigate", ignoreCase = true) -> "navigate"
-                    
-                    // MCP action 필드가 명확히 click 관련인 경우
-                    mcpStep.action.contains("클릭", ignoreCase = true) ||
-                    mcpStep.action.contains("click", ignoreCase = true) -> "click"
-                    
-                    // MCP action 필드가 type 관련인 경우
-                    mcpStep.action.contains("입력", ignoreCase = true) ||
-                    mcpStep.action.contains("type", ignoreCase = true) -> "type"
-                    
-                    // URL만 있고 selector가 없으면 navigate
-                    mcpStep.selector.isNullOrBlank() -> "navigate"
-                    
-                    // selector가 있으면 click (대부분의 상호작용)
-                    !mcpStep.selector.isNullOrBlank() -> "click"
-                    
-                    // 기본값은 navigate
-                    else -> "navigate"
-                }
-
+        val pathDetails = validPaths.map { mcpPath ->
+            val navigationSteps = mcpPath.steps.map { mcpStep ->
+                val clientAction = determineClientAction(mcpStep)
                 NavigationStep(
                     url = mcpStep.url,
                     title = mcpStep.title,
                     action = clientAction,
                     selector = mcpStep.selector,
-                    htmlAttributes = when (clientAction) {
-                        "type" -> {
-                            // textLabels에서 입력값을 추출하거나, action에서 파싱 시도
-                            val inputValue = extractInputValueFromAction(mcpStep.action) 
-                                ?: ""
-                            if (inputValue.isNotEmpty()) mapOf("value" to inputValue) else null
-                        }
-                        else -> null
-                    }
+                    htmlAttributes = if (clientAction == "type") {
+                        extractInputValueFromAction(mcpStep.action)?.let { mapOf("value" to it) }
+                    } else null
                 )
             }
 
-        return NavigationPathRequest(
-            pathId = bestPath.pathId,
-            description = "MCP Query: ${mcpResult.data.query}",
-            steps = navigationSteps
+            PathDetail(
+                pathId = mcpPath.pathId,
+                score = mcpPath.score,
+                total_weight = mcpPath.total_weight,
+                last_used = mcpPath.last_used,
+                estimated_time = mcpPath.estimated_time,
+                steps = navigationSteps
+            )
+        }
+
+        return AllPathsResponse(
+            query = mcpResult.data.query,
+            paths = pathDetails
         )
     }
 
+    /**
+     * [헬퍼 함수] McpStep을 기반으로 클라이언트에서 사용할 action 타입을 결정
+     */
+    private fun determineClientAction(mcpStep: McpStep): String {
+        return when {
+            mcpStep.action.contains("navigate", ignoreCase = true) ||
+                    mcpStep.action.contains("이동", ignoreCase = true) ||
+                    mcpStep.action.contains("접속", ignoreCase = true) -> "navigate"
+
+            mcpStep.action.contains("click", ignoreCase = true) ||
+                    mcpStep.action.contains("클릭", ignoreCase = true) -> "click"
+
+            mcpStep.action.contains("type", ignoreCase = true) ||
+                    mcpStep.action.contains("입력", ignoreCase = true) -> "type"
+
+            // 명시적 action이 없을 때의 추론 규칙
+            mcpStep.selector.isNullOrBlank() -> "navigate"
+            !mcpStep.selector.isNullOrBlank() -> "click"
+            else -> "navigate" // 기본값
+        }
+    }
+
+    /**
+     * [헬퍼 함수] action 문자열에서 'type' 액션에 필요한 입력값을 추출
+     */
     private fun extractInputValueFromAction(action: String): String? {
-        // "구글 입력", "검색어 입력: 구글", "type: 구글" 등에서 입력값 추출
         val patterns = listOf(
             """입력.*?[:：]\s*(.+)""".toRegex(),
             """type.*?[:：]\s*(.+)""".toRegex(RegexOption.IGNORE_CASE),
             """\"(.+)\"\s*입력""".toRegex(),
             """'(.+)'\s*입력""".toRegex()
         )
-        
         patterns.forEach { pattern ->
             pattern.find(action)?.let { matchResult ->
-                val value = matchResult.groupValues[1].trim()
-                if (value.isNotEmpty()) return value
+                return matchResult.groupValues[1].trim().takeIf { it.isNotEmpty() }
             }
         }
-        
         return null
     }
 }
