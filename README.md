@@ -3,7 +3,7 @@
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![License](https://img.shields.io/badge/license-Apache_2.0-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.7-brightgreen)
-![Kotlin](https://img.shields.io/badge/Kotlin-1.9.25-blueviolet)
+![Java](https://img.shields.io/badge/Java-21-orange)
 
 The Central Communication & Control Hub for the Vowser Ecosystem.
 
@@ -14,7 +14,7 @@ This repository contains the source code for the backend server of Vowser, which
 Vowser operates on a distributed architecture to maximize performance and maintainability. This `vowser-backend` server plays the role of the **"Spine" (척추)**, connecting the "Brain" and the "Face/Hands".
 
 ```
-[vowser-client] <=> [vowser-backend (Kotlin)] <=> [vowser-mcp-server (Python)]
+[vowser-client] <=> [vowser-backend (Java)] <=> [vowser-mcp-server (Python)]
 ```
 
 - **`vowser-client`**: The user-facing application (e.g., browser extension) that handles UI and executes final browser commands.
@@ -28,20 +28,20 @@ The project follows a layered architecture to separate concerns.
 ```
 src
 └── main
-    └── kotlin
+    └── java
         └── com
             └── vowser
                 └── backend
-                    ├── Application.kt
+                    ├── VowserBackendApplication.java
                     ├── api             # 1. API Layer: Handles external requests
                     │   ├── dto         #    - Data Transfer Objects (Request/Response)
                     │   └── controller  #    - REST API Controllers
                     ├── application     # 2. Application Layer: Business logic
                     │   └── service     #    - Core service logic (caching, orchestration)
                     └── infrastructure  # 3. Infrastructure Layer: External system integration
-                        ├── client      #    - FeignClient interface (for Python server)
-                        ├── config      #    - Configuration classes (Feign, WebSocket, etc.)
-                        └── control     #    - WebSocket handlers, BrowserTool interface & implementations
+                        ├── config      #    - Configuration classes (WebSocket, Google Cloud, etc.)
+                        ├── control     #    - WebSocket handlers, BrowserTool interface & implementations
+                        └── mcp         #    - MCP server integration
 ```
 
 ## Features
@@ -102,7 +102,7 @@ This project is licensed under the Apache 2.0 License.
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![License](https://img.shields.io/badge/license-Apache_2.0-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.7-brightgreen)
-![Kotlin](https://img.shields.io/badge/Kotlin-1.9.25-blueviolet)
+![Java](https://img.shields.io/badge/Java-21-orange)
 
 Vowser 생태계를 위한 중앙 통신 및 제어 허브입니다.
 
@@ -113,7 +113,7 @@ Vowser 생태계를 위한 중앙 통신 및 제어 허브입니다.
 Vowser는 성능과 유지보수성을 극대화하기 위해 분산 아키텍처로 동작합니다. 이 `vowser-backend` 서버는 **'척추(Spine)'** 역할을 맡아, '두뇌'와 '얼굴과 손발'을 연결합니다.
 
 ```
-[vowser-client] <=> [vowser-backend (Kotlin)] <=> [vowser-mcp-server(Python)]
+[vowser-client] <=> [vowser-backend (Java)] <=> [vowser-mcp-server(Python)]
 ```
 
 - **`vowser-client`**: UI를 처리하고 최종적인 브라우저 명령을 실행하는 사용자 대면 애플리케이션(예: 브라우저 확장 프로그램)입니다.
@@ -127,27 +127,27 @@ Vowser는 성능과 유지보수성을 극대화하기 위해 분산 아키텍�
 ```
 src
 └── main
-    └── kotlin
+    └── java
         └── com
             └── vowser
                 └── backend
-                    ├── Application.kt
+                    ├── VowserBackendApplication.java
                     ├── api             # 1. API 계층: 외부 요청 처리
                     │   ├── dto         #    - 데이터 전송 객체 (Request/Response)
                     │   └── controller  #    - REST API 컨트롤러
                     ├── application     # 2. 애플리케이션 계층: 비즈니스 로직
                     │   └── service     #    - 핵심 서비스 로직 (캐싱, 오케스트레이션)
                     └── infrastructure  # 3. 인프라 계층: 외부 시스템 연동
-                        ├── client      #    - FeignClient 인터페이스 (Python 서버 연동)
-                        ├── config      #    - Feign, WebSocket 등 설정 클래스
-                        └── control     #    - 웹소켓 핸들러, BrowserTool 인터페이스 및 구현체
+                        ├── config      #    - WebSocket, Google Cloud 등 설정 클래스
+                        ├── control     #    - 웹소켓 핸들러, BrowserTool 인터페이스 및 구현체
+                        └── mcp         #    - MCP 서버 연동
 ```
 
 ## 주요 기능
 
 - **API 게이트웨이**: 클라이언트가 분석 및 정보 조회를 요청할 수 있는 안정적인 REST API를 제공합니다.
 - **실시간 제어 허브**: 클라이언트와의 웹소켓 연결을 관리하여 브라우저 제어 명령(클릭, 타이핑, 뒤로가기 등)을 중계합니다.
-- **성능 최적화**: 캐싱 전략을 구현하여 비용이 많이 드는 중복 AI 분석 호출을 줄입니다.
+- **성능 최적화**: 효율적인 메모리 관리와 비동기 처리로 높은 성능을 제공합니다.
 - **무상태 및 확장성**: 수평적 확장이 용이하도록 무상태(Stateless)로 설계되었습니다.
 
 ---
