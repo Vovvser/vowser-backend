@@ -11,11 +11,6 @@ spring:
     compatibility-verifier:
       enabled: false
 
-  data:
-    redis:
-      host: ${SPRING_DATA_REDIS_HOST:redis}
-      port: ${SPRING_DATA_REDIS_PORT:6379}
-      timeout: 3000
 
   servlet:
     multipart:
@@ -31,34 +26,54 @@ management:
       exposure:
         include: health,info
 
-# Google Cloud Platform 설정
 gcp:
   project-id: "sixth-radar-463501-n1"
   location: "global"
 
-# Google Cloud 자격 증명
 google:
   cloud:
     credentials:
-      json: ${GOOGLE_CREDENTIALS_JSON}
+      json: ${GOOGLE_CREDENTIALS_JSON:}
 
 
-#ai:
-#  gemini:
-#    api-key: ${GEMINI_API_KEY}
 
 logging:
   pattern:
     dateformat: yyyy-MM-dd HH:mm:ss.SSS
 
+speech:
+  language-code: ko-KR
+  model: long
+
+websocket:
+  timeout:
+    write: 10
+    connect: 30
+
+network:
+  google-cloud:
+    https-port: 443
+  data:
+    bytes-per-kb: 1024
+
+mcp:
+  search:
+    path-limit: 3
+
+content:
+  types:
+    text: "text"
+    image: "image"
+
 springdoc:
   api-docs:
     enabled: true
+    path: /v3/api-docs
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
     operations-sorter: method
     tags-sorter: alpha
     display-request-duration: true
-  default-produces-media-type: application/json
-  default-consumes-media-type: application/json
+#  default-produces-media-type: application/json
+#  default-consumes-media-type: application/json

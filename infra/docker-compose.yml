@@ -12,25 +12,7 @@ services:
       SPRING_PROFILES_ACTIVE: local
     ports:
       - "4001:4001"
-    depends_on:
-      redis:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4001/actuator/health"]
       interval: 30s
       retries: 5
-
-  redis:
-    image: redis:7
-    command: ["redis-server","--appendonly","yes"]
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      retries: 5
-
-volumes:
-  redis_data:
