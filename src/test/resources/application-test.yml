@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: vowser-backend-test
+gcp:
+  enabled: false
+mcp:
+  enabled: false
