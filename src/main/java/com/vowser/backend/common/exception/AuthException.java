@@ -56,13 +56,7 @@ public class AuthException extends BaseException {
         return new AuthException(ErrorCode.ACCESS_DENIED, "리소스 '" + resource + "'에 대한 접근이 거부되었습니다");
     }
 
-    public static AuthException oauth2Failed(String provider, String reason) {
-        return new AuthException(ErrorCode.OAUTH2_AUTHENTICATION_FAILED, 
-            String.format("%s OAuth2 인증 실패: %s", provider, reason));
-    }
-
-    public static AuthException unsupportedProvider(String provider) {
-        return new AuthException(ErrorCode.OAUTH2_PROVIDER_NOT_SUPPORTED, 
-            "지원하지 않는 OAuth2 제공자: " + provider);
+    public static AuthException naverLoginFailed(String reason) {
+        return new AuthException(ErrorCode.NAVER_OAUTH2_FAILED, reason);
     }
 }

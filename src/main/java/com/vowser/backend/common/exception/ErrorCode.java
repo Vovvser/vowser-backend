@@ -26,15 +26,12 @@ public enum ErrorCode {
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "A003", "토큰이 만료되었습니다"),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "A004", "유효하지 않은 토큰입니다"),
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "A005", "리프레시 토큰을 찾을 수 없습니다"),
-    OAUTH2_AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "A006", "OAuth2 인증에 실패했습니다"),
-    OAUTH2_PROVIDER_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "A007", "지원하지 않는 OAuth2 제공자입니다"),
+    NAVER_OAUTH2_FAILED(HttpStatus.UNAUTHORIZED, "A006", "네이버 로그인에 실패했습니다"),
     
     // Member
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "M001", "회원을 찾을 수 없습니다"),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "M002", "이미 사용중인 이메일입니다"),
-    DUPLICATE_USERNAME(HttpStatus.CONFLICT, "M003", "이미 사용중인 사용자명입니다"),
-    INVALID_MEMBER_ROLE(HttpStatus.BAD_REQUEST, "M004", "유효하지 않은 회원 권한입니다"),
-    MEMBER_PROFILE_UPDATE_FAILED(HttpStatus.BAD_REQUEST, "M005", "회원 프로필 업데이트에 실패했습니다"),
+    MEMBER_PROFILE_UPDATE_FAILED(HttpStatus.BAD_REQUEST, "M003", "회원 프로필 업데이트에 실패했습니다"),
     
     // Business Logic
     INVALID_BUSINESS_LOGIC(HttpStatus.BAD_REQUEST, "B001", "비즈니스 로직 오류가 발생했습니다"),
