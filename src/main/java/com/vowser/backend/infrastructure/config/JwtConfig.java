@@ -46,4 +46,20 @@ public class JwtConfig {
      * 토큰 접두사
      */
     private String prefix = "Bearer ";
+    
+    /**
+     * 쿠키 보안 설정 (HTTPS 전용)
+     * 개발 환경에서는 false, 프로덕션에서는 true
+     */
+    private boolean cookieSecure = false;
+    
+    /**
+     * 쿠키 도메인
+     */
+    private String cookieDomain = null;
+    
+    /**
+     * 쿠키 경로
+     */
+    private String cookiePath = "/";
 }

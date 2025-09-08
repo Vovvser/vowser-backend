@@ -5,6 +5,7 @@ import com.vowser.backend.domain.member.repository.MemberRepository;
 import com.vowser.backend.infrastructure.security.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     private final JwtProvider jwtProvider;
     private final MemberRepository memberRepository;
+    private final CookieUtil cookieUtil;
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, 
@@ -94,16 +96,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
     
     /**
-     * Request Header에서 JWT 토큰 추출
+     * Request Header 또는 쿠키에서 JWT 토큰 추출
+     * Header가 우선순위가 높고, 없으면 쿠키에서 추출
      * 
      * @param request HttpServletRequest
-     * @return JWT 토큰 (Bearer 제거)
+     * @return JWT 토큰
      */
     private String extractTokenFromRequest(HttpServletRequest request) {
+        // 1. 먼저 Header에서 토큰 확인
         String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
         
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
             return bearerToken.substring(BEARER_PREFIX.length());
+        }
+        
+        // 2. Header에 없으면 쿠키에서 토큰 확인
+        String cookieToken = cookieUtil.extractCookie(request, "AccessToken");
+        if (StringUtils.hasText(cookieToken)) {
+            return cookieToken;
         }
         
         return null;

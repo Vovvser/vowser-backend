@@ -1,6 +1,7 @@
 package com.vowser.backend.infrastructure.security.oauth2;
 
 import com.vowser.backend.infrastructure.security.CustomUserDetails;
+import com.vowser.backend.infrastructure.security.jwt.CookieUtil;
 import com.vowser.backend.infrastructure.security.jwt.JwtProvider;
 import com.vowser.backend.infrastructure.security.jwt.RefreshTokenService;
 import jakarta.servlet.ServletException;
@@ -12,13 +13,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 
 /**
  * OAuth2 로그인 성공 핸들러
- * JWT 토큰 발급 및 프론트엔드로 리다이렉트
+ * JWT 토큰을 쿠키로 발급 및 프론트엔드로 리다이렉트
  */
 @Slf4j
 @Component
@@ -27,8 +27,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
+    private final CookieUtil cookieUtil;
     
-    @Value("${oauth2.success-redirect-url:http://localhost:3000/auth/callback}")
+    @Value("${oauth2.success-redirect-url:http://localhost:3000/auth/success}")
     private String successRedirectUrl;
     
     @Override
@@ -54,14 +55,15 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // 3. Refresh Token Redis 저장
         refreshTokenService.saveRefreshToken(memberId, refreshToken);
         
-        // 4. 프론트엔드로 토큰과 함께 리다이렉트
-        String targetUrl = UriComponentsBuilder.fromUriString(successRedirectUrl)
-                .queryParam("access_token", accessToken)
-                .queryParam("refresh_token", refreshToken)
-                .build().toUriString();
+        // 4. 토큰을 쿠키에 저장
+        cookieUtil.addAccessTokenCookie(response, accessToken);
+        cookieUtil.addRefreshTokenCookie(response, refreshToken);
         
-        log.info("OAuth2 로그인 성공 후 리다이렉트: {}", targetUrl);
+        log.info("OAuth2 로그인 성공, 토큰을 쿠키로 발급 완료");
         
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        // 5. 프론트엔드로 리다이렉트 (토큰은 쿠키에 포함)
+        log.info("OAuth2 로그인 성공 후 리다이렉트: {}", successRedirectUrl);
+        
+        getRedirectStrategy().sendRedirect(request, response, successRedirectUrl);
     }
 }

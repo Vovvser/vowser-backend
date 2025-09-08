@@ -27,6 +27,7 @@ public enum ErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "A004", "유효하지 않은 토큰입니다"),
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "A005", "리프레시 토큰을 찾을 수 없습니다"),
     NAVER_OAUTH2_FAILED(HttpStatus.UNAUTHORIZED, "A006", "네이버 로그인에 실패했습니다"),
+    TOKEN_MISMATCH(HttpStatus.UNAUTHORIZED, "A007", "인증 정보가 일치하지 않습니다"),
     
     // Member
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "M001", "회원을 찾을 수 없습니다"),

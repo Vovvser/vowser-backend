@@ -80,6 +80,16 @@ public class ApiResponse<T> {
                 .error(ErrorInfo.of(status, message))
                 .build();
     }
+    
+    /**
+     * 실패 응답 생성 (HttpStatus와 메시지) - 제네릭 타입 지원
+     */
+    public static <T> ApiResponse<T> errorWithType(HttpStatus status, String message) {
+        return ApiResponse.<T>builder()
+                .success(false)
+                .error(ErrorInfo.of(status, message))
+                .build();
+    }
 
     /**
      * 에러 정보 내부 클래스
