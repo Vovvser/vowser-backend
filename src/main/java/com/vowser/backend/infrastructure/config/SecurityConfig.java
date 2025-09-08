@@ -1,5 +1,6 @@
 package com.vowser.backend.infrastructure.config;
 
+import com.vowser.backend.infrastructure.security.oauth2.CustomOAuth2UserService;
 import com.vowser.backend.infrastructure.security.oauth2.OAuth2AuthenticationFailureHandler;
 import com.vowser.backend.infrastructure.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
     
+    private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
     
@@ -70,6 +72,9 @@ public class SecurityConfig {
                 )
                 .redirectionEndpoint(endpoint -> endpoint
                     .baseUri("/login/oauth2/code/*")
+                )
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(customOAuth2UserService)
                 )
                 .successHandler(oAuth2AuthenticationSuccessHandler)
                 .failureHandler(oAuth2AuthenticationFailureHandler)
