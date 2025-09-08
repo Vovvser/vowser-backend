@@ -1,5 +1,6 @@
 package com.vowser.backend.infrastructure.config;
 
+import com.vowser.backend.infrastructure.security.jwt.JwtAuthenticationFilter;
 import com.vowser.backend.infrastructure.security.oauth2.CustomOAuth2UserService;
 import com.vowser.backend.infrastructure.security.oauth2.OAuth2AuthenticationFailureHandler;
 import com.vowser.backend.infrastructure.security.oauth2.OAuth2AuthenticationSuccessHandler;
@@ -11,6 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -29,6 +31,7 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     
     /**
      * 인증이 필요 없는 경로들
@@ -78,7 +81,10 @@ public class SecurityConfig {
                 )
                 .successHandler(oAuth2AuthenticationSuccessHandler)
                 .failureHandler(oAuth2AuthenticationFailureHandler)
-            );
+            )
+            
+            // JWT 필터 추가
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
     }
