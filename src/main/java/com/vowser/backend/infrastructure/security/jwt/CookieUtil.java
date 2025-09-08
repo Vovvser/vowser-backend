@@ -25,7 +25,7 @@ public class CookieUtil {
     public void addAccessTokenCookie(HttpServletResponse response, String token) {
         ResponseCookie cookie = ResponseCookie.from("AccessToken", token)
                 .httpOnly(true)  // XSS 방지
-                .secure(jwtConfig.isCookieSecure())  // HTTPS에서만 전송
+                .secure(jwtConfig.isCookieSecure())  // 환경별 설정
                 .path("/")
                 .maxAge(jwtConfig.getAccessTokenValidityInSeconds())
                 .sameSite("Lax")  // CSRF 방지

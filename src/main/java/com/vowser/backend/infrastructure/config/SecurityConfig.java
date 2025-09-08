@@ -43,7 +43,8 @@ public class SecurityConfig {
         "/swagger-ui/**",
         "/swagger-ui.html",
         "/v3/api-docs/**",
-        "/health"
+        "/health",
+        "/test"  // API 테스트 페이지
     };
     
     @Bean
@@ -64,18 +65,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(PUBLIC_URLS).permitAll()
                 .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
                 .anyRequest().authenticated()
             )
             
             // OAuth2 로그인 설정
             .oauth2Login(oauth2 -> oauth2
-                .authorizationEndpoint(endpoint -> endpoint
-                    .baseUri("/oauth2/authorize")
-                )
-                .redirectionEndpoint(endpoint -> endpoint
-                    .baseUri("/login/oauth2/code/*")
-                )
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(customOAuth2UserService)
                 )
