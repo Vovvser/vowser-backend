@@ -1,8 +1,8 @@
 package com.vowser.backend.api.controller;
 
 import com.vowser.backend.api.doc.SpeechApiDocument;
-import com.vowser.backend.api.dto.SpeechDto;
-import com.vowser.backend.application.service.SpeechService;
+import com.vowser.backend.api.dto.speech.SpeechResponse;
+import com.vowser.backend.application.service.speech.SpeechService;
 import com.vowser.backend.common.constants.ApiConstants;
 import com.vowser.backend.common.constants.NetworkConstants;
 import com.vowser.backend.infrastructure.mcp.McpWebSocketClient;
@@ -34,7 +34,7 @@ public class SpeechController {
 
     @SpeechApiDocument.TranscribeAndExecute
     @PostMapping(value = "/transcribe", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<SpeechDto.SpeechResponse> transcribeAndExecute(
+    public ResponseEntity<SpeechResponse> transcribeAndExecute(
             @Parameter(
                 description = "인식할 음성 파일 (WAV, MP3, FLAC 등 지원)",
                 required = true
@@ -60,19 +60,19 @@ public class SpeechController {
                 log.info("MCP 서버로 음성 명령 전송 완료: sessionId=[{}]", sessionId);
                 
                 return ResponseEntity.ok(
-                    new SpeechDto.SpeechResponse(true, transcript, null)
+                    new SpeechResponse(true, transcript, null)
                 );
             } else {
                 log.error("MCP 서버에 연결되지 않음: sessionId=[{}]", sessionId);
                 return ResponseEntity.internalServerError().body(
-                    new SpeechDto.SpeechResponse(false, transcript, "MCP 서버에 연결되지 않음")
+                    new SpeechResponse(false, transcript, "MCP 서버에 연결되지 않음")
                 );
             }
 
         } catch (Exception e) {
             log.error("음성 처리 중 오류 발생: sessionId=[{}]", sessionId, e);
             return ResponseEntity.internalServerError().body(
-                new SpeechDto.SpeechResponse(false, null, e.getMessage())
+                new SpeechResponse(false, null, e.getMessage())
             );
         }
     }

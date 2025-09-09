@@ -1,5 +1,6 @@
 package com.vowser.backend.api.doc;
 
+import com.vowser.backend.api.dto.speech.SpeechResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -29,7 +30,7 @@ public @interface SpeechApiDocument {
                     description = "음성 인식 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = com.vowser.backend.api.dto.SpeechDto.SpeechResponse.class),
+                            schema = @Schema(implementation = SpeechResponse.class),
                             examples = @ExampleObject(
                                     value = """
                         {
