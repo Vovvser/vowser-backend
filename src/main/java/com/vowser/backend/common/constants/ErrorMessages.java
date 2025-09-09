@@ -25,13 +25,6 @@ public final class ErrorMessages {
         public static final String INVALID_URL_FORMAT = "오류: 잘못된 URL 형식입니다 - ";
     }
     
-    public static final class Speech {
-        public static final String EMPTY_AUDIO_FILE = "업로드된 파일이 비어있습니다.";
-        public static final String NO_SPEECH_RECOGNIZED = "음성을 인식할 수 없습니다. 오디오 품질을 확인해주세요.";
-        public static final String CANNOT_READ_AUDIO_FILE = "음성 파일을 읽을 수 없습니다: ";
-        public static final String SPEECH_RECOGNITION_FAILED = "음성 인식에 실패했습니다: ";
-    }
-    
     public static final class MCP {
         public static final String APPLICATION_SHUTDOWN = "애플리케이션 종료";
     }

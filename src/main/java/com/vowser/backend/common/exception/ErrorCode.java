@@ -33,6 +33,12 @@ public enum ErrorCode {
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "M001", "회원을 찾을 수 없습니다"),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "M002", "이미 사용중인 이메일입니다"),
     MEMBER_PROFILE_UPDATE_FAILED(HttpStatus.BAD_REQUEST, "M003", "회원 프로필 업데이트에 실패했습니다"),
+
+    // Speech
+    SPEECH_EMPTY_AUDIO_FILE(HttpStatus.BAD_REQUEST, "S000", "업로드된 파일이 비어있습니다"),
+    SPEECH_NO_SPEECH_RECOGNIZED(HttpStatus.BAD_REQUEST, "S001", "음성이 인식되지 않았습니다"),
+    SPEECH_CANNOT_READ_AUDIO_FILE(HttpStatus.BAD_REQUEST, "S002", "오디오 파일을 읽을 수 없습니다"),
+    SPEECH_RECOGNITION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S003", "음성 인식 처리에 실패했습니다"),
     
     // Business Logic
     INVALID_BUSINESS_LOGIC(HttpStatus.BAD_REQUEST, "B001", "비즈니스 로직 오류가 발생했습니다"),
