@@ -41,6 +41,7 @@ out/
 
 ### Infra ###
 *.env
+*.env.local
 infra/env/
 infra/secrets/
 
