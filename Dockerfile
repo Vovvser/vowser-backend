@@ -3,7 +3,7 @@ FROM eclipse-temurin:21-jdk AS build
 WORKDIR /workspace
 COPY gradlew .
 COPY gradle ./gradle
-COPY build.gradle.kts .
+COPY build.gradle .
 COPY settings.gradle.kts .
 RUN ./gradlew dependencies --no-daemon
 COPY src ./src
@@ -12,7 +12,7 @@ RUN ./gradlew bootJar --no-daemon \
 
 # ───────── Runtime stage ─────────
 FROM eclipse-temurin:21-jre-jammy AS run
-ENV SPRING_PROFILES_ACTIVE=prod
+
 WORKDIR /app
 
 RUN groupadd --system appuser && useradd --system --gid appuser appuser
