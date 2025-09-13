@@ -1,12 +1,10 @@
 package com.vowser.backend.api.controller;
 
 import com.vowser.backend.api.doc.SpeechApiDocument;
-import com.vowser.backend.api.dto.SpeechDto;
-import com.vowser.backend.application.service.SpeechService;
+import com.vowser.backend.api.dto.speech.SpeechResponse;
+import com.vowser.backend.api.dto.speech.SpeechTranscribeRequest;
+import com.vowser.backend.application.service.speech.SpeechProcessingService;
 import com.vowser.backend.common.constants.ApiConstants;
-import com.vowser.backend.common.constants.NetworkConstants;
-import com.vowser.backend.infrastructure.mcp.McpWebSocketClient;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,61 +27,32 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class SpeechController {
 
-    private final SpeechService speechService;
-    private final McpWebSocketClient mcpWebSocketClient;
+    private final SpeechProcessingService speechProcessingService;
 
     @SpeechApiDocument.TranscribeAndExecute
     @PostMapping(value = "/transcribe", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<SpeechDto.SpeechResponse> transcribeAndExecute(
-            @Parameter(
-                description = "인식할 음성 파일 (WAV, MP3, FLAC 등 지원)",
-                required = true
-            )
+    public ResponseEntity<SpeechResponse> transcribeAndExecute(
             @RequestParam("audio") MultipartFile audioFile,
-            
-            @Parameter(
-                description = "세션 식별자 (클라이언트별 고유 ID)",
-                required = true,
-                example = "user-session-12345"
-            )
-            @RequestParam("sessionId") String sessionId) {
+            @RequestParam("sessionId") String sessionId,
+            @RequestParam(value = "enableGeneralMode", defaultValue = "true") boolean enableGeneralMode,
+            @RequestParam(value = "enableNumberMode", defaultValue = "false") boolean enableNumberMode,
+            @RequestParam(value = "enableAlphabetMode", defaultValue = "false") boolean enableAlphabetMode,
+            @RequestParam(value = "enableSnippetMode", defaultValue = "false") boolean enableSnippetMode,
+            @RequestParam(required = false) java.util.List<String> customPhrases) {
         
-        try {
-            log.info("음성 인식 요청 수신: sessionId=[{}], fileSize=[{}KB]", 
-                    sessionId, audioFile.getSize() / NetworkConstants.DataSize.BYTES_PER_KB);
-            
-            String transcript = speechService.transcribe(audioFile);
-            log.info("음성 인식 완료: sessionId=[{}], transcript=[{}]", sessionId, transcript);
-
-            if (mcpWebSocketClient.isConnected()) {
-                mcpWebSocketClient.sendVoiceCommand(transcript, sessionId);
-                log.info("MCP 서버로 음성 명령 전송 완료: sessionId=[{}]", sessionId);
-                
-                return ResponseEntity.ok(
-                    new SpeechDto.SpeechResponse(true, transcript, null)
-                );
-            } else {
-                log.error("MCP 서버에 연결되지 않음: sessionId=[{}]", sessionId);
-                return ResponseEntity.internalServerError().body(
-                    new SpeechDto.SpeechResponse(false, transcript, "MCP 서버에 연결되지 않음")
-                );
-            }
-
-        } catch (Exception e) {
-            log.error("음성 처리 중 오류 발생: sessionId=[{}]", sessionId, e);
-            return ResponseEntity.internalServerError().body(
-                new SpeechDto.SpeechResponse(false, null, e.getMessage())
-            );
-        }
+        SpeechTranscribeRequest request = new SpeechTranscribeRequest(
+            audioFile, sessionId,
+            enableGeneralMode, enableNumberMode,
+            enableAlphabetMode, enableSnippetMode, customPhrases
+        );
+        
+        return speechProcessingService.processVoiceCommand(request);
     }
 
 
     @SpeechApiDocument.McpStatus
     @GetMapping("/mcp-status")
     public ResponseEntity<Object> getMcpConnectionStatus() {
-        boolean connected = mcpWebSocketClient.isConnected();
-        log.debug("MCP 서버 연결 상태 확인: {}", connected);
-        
-        return ResponseEntity.ok(java.util.Map.of(ApiConstants.RESPONSE_KEY_CONNECTED, connected));
+        return speechProcessingService.getMcpConnectionStatus();
     }
 }

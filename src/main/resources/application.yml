@@ -6,25 +6,36 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:local}
   application:
     name: vowser-backend
-
-  cloud:
-    compatibility-verifier:
-      enabled: false
-
-
   servlet:
     multipart:
       max-file-size: 200MB
       max-request-size: 200MB
-
   jackson:
     default-property-inclusion: non_null
+  cloud:
+    compatibility-verifier:
+      enabled: false
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+
+logging:
+  pattern:
+    dateformat: yyyy-MM-dd HH:mm:ss.SSS
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
 
 gcp:
   project-id: "sixth-radar-463501-n1"
@@ -34,12 +45,6 @@ google:
   cloud:
     credentials:
       json: ${GOOGLE_CREDENTIALS_JSON:}
-
-
-
-logging:
-  pattern:
-    dateformat: yyyy-MM-dd HH:mm:ss.SSS
 
 speech:
   language-code: ko-KR
@@ -65,15 +70,14 @@ content:
     text: "text"
     image: "image"
 
-springdoc:
-  api-docs:
-    enabled: true
-    path: /v3/api-docs
-  swagger-ui:
-    enabled: true
-    path: /swagger-ui.html
-    operations-sorter: method
-    tags-sorter: alpha
-    display-request-duration: true
-#  default-produces-media-type: application/json
-#  default-consumes-media-type: application/json
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-validity-in-seconds: ${JWT_ACCESS_TOKEN_VALIDITY}
+  refresh-token-validity-in-seconds: ${JWT_REFRESH_TOKEN_VALIDITY}
+  issuer: ${JWT_ISSUER}
+  header: Authorization
+  prefix: "Bearer "
+
+oauth2:
+  success-redirect-url: ${OAUTH2_SUCCESS_REDIRECT_URL}
+

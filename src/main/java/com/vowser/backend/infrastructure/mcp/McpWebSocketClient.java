@@ -32,7 +32,7 @@ public class McpWebSocketClient {
     @Value("${mcp.server.url:ws://localhost:8000/ws}")
     private String mcpServerUrl;
     
-    @Value("${mcp.reconnect.delay:5000}")
+    @Value("${mcp.reconnect.delay:20000}")
     private long reconnectDelayMs;
     
 
