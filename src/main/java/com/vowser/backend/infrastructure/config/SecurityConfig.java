@@ -44,7 +44,9 @@ public class SecurityConfig {
         "/swagger-ui.html",
         "/v3/api-docs/**",
         "/health",
-        "/test"  // API 테스트 페이지
+        "/test",  // API 테스트 페이지
+        "/control",  // WebSocket 엔드포인트
+        "/api/v1/speech/**"  // Speech API
     };
     
     @Bean
