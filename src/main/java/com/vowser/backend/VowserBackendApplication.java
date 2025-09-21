@@ -22,14 +22,17 @@ public class VowserBackendApplication {
     }
 
     private static void loadEnvironmentVariables() {
+        loadEnvFile(".env");
+        loadEnvFile(".env.local");
+    }
+
+    private static void loadEnvFile(String fileName) {
         Dotenv dotenv = Dotenv.configure()
                 .directory(System.getProperty("user.dir"))
-                .filename(".env")
+                .filename(fileName)
                 .ignoreIfMissing()
                 .load();
 
-        dotenv.entries().forEach(entry -> 
-            System.setProperty(entry.getKey(), entry.getValue())
-        );
+        dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
     }
 }
