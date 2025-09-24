@@ -33,6 +33,12 @@ public enum ErrorCode {
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "M001", "회원을 찾을 수 없습니다"),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "M002", "이미 사용중인 이메일입니다"),
     MEMBER_PROFILE_UPDATE_FAILED(HttpStatus.BAD_REQUEST, "M003", "회원 프로필 업데이트에 실패했습니다"),
+    PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "M004", "접근성 프로필을 찾을 수 없습니다"),
+
+    // Security / Crypto
+    INVALID_ENCRYPTION_KEY(HttpStatus.INTERNAL_SERVER_ERROR, "SC001", "잘못된 암호화 키입니다"),
+    ENCRYPTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SC002", "데이터 암호화에 실패했습니다"),
+    DECRYPTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SC003", "데이터 복호화에 실패했습니다"),
 
     // Speech
     SPEECH_EMPTY_AUDIO_FILE(HttpStatus.BAD_REQUEST, "S000", "업로드된 파일이 비어있습니다"),

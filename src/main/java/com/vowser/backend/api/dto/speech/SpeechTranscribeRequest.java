@@ -1,5 +1,6 @@
 package com.vowser.backend.api.dto.speech;
 
+import com.vowser.backend.api.dto.member.AccessibilityProfileDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,6 +30,9 @@ public class SpeechTranscribeRequest {
     )
     @NotBlank(message = "세션 ID는 필수입니다")
     private String sessionId;
+
+    @Schema(description = "로그인하지 않은 사용자를 위한 임시 접근성 설정 (세션 맞춤 모드)")
+    private AccessibilityProfileDto.CreateOrUpdateRequest accessibilityContext;
 
     @Schema(description = "일반 음성 인식 모드 활성화", example = "true")
     private boolean enableGeneralMode = true;

@@ -81,3 +81,6 @@ jwt:
 oauth2:
   success-redirect-url: ${OAUTH2_SUCCESS_REDIRECT_URL}
 
+vowser:
+  db:
+    encryption-key: ${VOWSER_DB_ENCRYPTION_KEY}
