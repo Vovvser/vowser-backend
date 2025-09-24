@@ -53,13 +53,13 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.removeIf(converter -> converter instanceof MappingJackson2HttpMessageConverter);
+        converters.removeIf(MappingJackson2HttpMessageConverter.class::isInstance);
         
         MappingJackson2HttpMessageConverter jsonConverter =
                 new MappingJackson2HttpMessageConverter(objectMapper());
         jsonConverter.setDefaultCharset(StandardCharsets.UTF_8);
-        converters.add(0, jsonConverter);
-        
+        converters.add(jsonConverter);
+
         StringHttpMessageConverter stringConverter = new StringHttpMessageConverter(StandardCharsets.UTF_8);
         stringConverter.setWriteAcceptCharset(false);
         converters.add(0, stringConverter);
