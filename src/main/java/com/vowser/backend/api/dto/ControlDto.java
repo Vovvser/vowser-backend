@@ -116,4 +116,49 @@ public class ControlDto {
     public static class GoBackArgs {
         private String placeholder;
     }
+
+    /**
+     * 클라이언트에서 보내는 기여모드 메시지
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ContributionMessage {
+        private String type = "save_contribution_path";
+        private String sessionId;
+        private String task;
+        private List<ContributionStep> steps;
+        private boolean isPartial = false;
+        private boolean isComplete = false;
+        private int totalSteps = 0;
+    }
+
+    /**
+     * 기여 단계 정보
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ContributionStep {
+        private String url;
+        private String title;
+        private String action;
+        private String selector;
+        private Map<String, String> htmlAttributes;
+        private Long timestamp;
+    }
+
+    /**
+     * 기여모드 저장 성공 응답
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ContributionResponse {
+        private String type = "contribution_response";
+        private String sessionId;
+        private boolean success;
+        private String message;
+        private int savedSteps;
+    }
 }

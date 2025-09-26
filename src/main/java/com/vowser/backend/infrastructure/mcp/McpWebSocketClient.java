@@ -2,6 +2,7 @@ package com.vowser.backend.infrastructure.mcp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vowser.backend.application.service.ControlService;
+import com.vowser.backend.api.dto.ControlDto;
 import com.vowser.backend.common.constants.ErrorMessages;
 import com.vowser.backend.common.constants.McpConstants;
 import com.vowser.backend.common.constants.NetworkConstants;
@@ -116,6 +117,52 @@ public class McpWebSocketClient {
         } catch (Exception e) {
             log.error("음성 명령 JSON 직렬화 또는 전송 실패: sessionId=[{}], transcript=[{}]", 
                     sessionId, transcript, e);
+        }
+    }
+
+    /**
+     * 기여모드 데이터를 MCP 서버로 전송
+     *
+     * @param contributionMessage 기여모드 메시지
+     */
+    public void sendContributionData(ControlDto.ContributionMessage contributionMessage) {
+        if (!isConnected.get()) {
+            log.error("MCP 서버에 연결되어 있지 않습니다. 기여모드 데이터 전송 실패: sessionId=[{}]",
+                    contributionMessage.getSessionId());
+            return;
+        }
+
+        if (contributionMessage.getSteps() == null || contributionMessage.getSteps().isEmpty()) {
+            log.warn("빈 기여모드 단계는 전송하지 않습니다: sessionId=[{}]", contributionMessage.getSessionId());
+            return;
+        }
+
+        try {
+            Map<String, Object> message = Map.of(
+                "type", "save_contribution_path",
+                "data", Map.of(
+                    "sessionId", contributionMessage.getSessionId(),
+                    "task", contributionMessage.getTask(),
+                    "steps", contributionMessage.getSteps(),
+                    "isPartial", contributionMessage.isPartial(),
+                    "isComplete", contributionMessage.isComplete(),
+                    "totalSteps", contributionMessage.getTotalSteps()
+                )
+            );
+
+            String jsonMessage = objectMapper.writeValueAsString(message);
+            boolean success = webSocket.send(jsonMessage);
+
+            if (success) {
+                log.info("MCP 서버로 기여모드 데이터 전송 성공: sessionId=[{}], stepCount=[{}]",
+                        contributionMessage.getSessionId(), contributionMessage.getSteps().size());
+            } else {
+                log.error("MCP 서버로 기여모드 데이터 전송 실패: WebSocket 전송 큐가 가득참");
+            }
+
+        } catch (Exception e) {
+            log.error("기여모드 데이터 JSON 직렬화 또는 전송 실패: sessionId=[{}]",
+                    contributionMessage.getSessionId(), e);
         }
     }
 
