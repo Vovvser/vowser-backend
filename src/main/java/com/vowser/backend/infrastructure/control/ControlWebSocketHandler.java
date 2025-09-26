@@ -1,9 +1,11 @@
 package com.vowser.backend.infrastructure.control;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vowser.backend.api.dto.ControlDto;
 import com.vowser.backend.application.service.ControlService;
+import com.vowser.backend.application.service.speech.McpIntegrationService;
 import com.vowser.backend.common.constants.ErrorMessages;
 import com.vowser.backend.infrastructure.control.tool.BrowserTool;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * 제어용 WebSocket 핸들러
@@ -30,6 +33,7 @@ public class ControlWebSocketHandler extends TextWebSocketHandler {
 
     private final ControlService controlService;
     private final ToolRegistry toolRegistry;
+    private final McpIntegrationService mcpIntegrationService;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -44,12 +48,32 @@ public class ControlWebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String payload = message.getPayload();
-        log.info("웹소켓 메시지 수신: sessionId=[{}], messageLength=[{}]", 
+        log.info("웹소켓 메시지 수신: sessionId=[{}], messageLength=[{}]",
                 session.getId(), payload.length());
-        
+
         try {
+            JsonNode jsonNode = objectMapper.readTree(payload);
+
+            log.debug("수신된 JSON 구조: {}", jsonNode.toString().substring(0, Math.min(200, jsonNode.toString().length())));
+
+            // 기여모드 메시지 확인 (type 필드가 있는 경우)
+            if (jsonNode.has("type") && "save_contribution_path".equals(jsonNode.get("type").asText())) {
+                log.info("기여모드 메시지 감지됨 (type 필드): sessionId=[{}]", session.getId());
+                handleContributionMessage(session, payload);
+                return;
+            }
+
+            // 기여모드 메시지 확인 (legacy format: sessionId, task, steps 필드로 판단)
+            if (jsonNode.has("sessionId") && jsonNode.has("task") && jsonNode.has("steps")
+                && !jsonNode.has("toolName")) {
+                log.info("기여모드 메시지 감지됨 (legacy format): sessionId=[{}]", session.getId());
+                handleContributionMessage(session, payload);
+                return;
+            }
+
+            // 기존 툴 실행 메시지 처리
             ControlDto.CallToolRequest request = objectMapper.readValue(payload, ControlDto.CallToolRequest.class);
-            log.debug("도구 실행 요청 파싱 완료: toolName=[{}], argsCount=[{}]", 
+            log.debug("도구 실행 요청 파싱 완료: toolName=[{}], argsCount=[{}]",
                     request.getToolName(), request.getArgs() != null ? request.getArgs().size() : 0);
 
             BrowserTool<?> tool = toolRegistry.getTool(request.getToolName());
@@ -64,11 +88,11 @@ public class ControlWebSocketHandler extends TextWebSocketHandler {
             }
 
             ControlDto.ToolResult result = executeTool(tool, request.getArgs());
-            
+
             String responseJson = objectMapper.writeValueAsString(result);
             session.sendMessage(new TextMessage(responseJson));
-            
-            log.info("도구 실행 완료 및 응답 전송: sessionId=[{}], toolName=[{}], success=[{}]", 
+
+            log.info("도구 실행 완료 및 응답 전송: sessionId=[{}], toolName=[{}], success=[{}]",
                     session.getId(), request.getToolName(), !result.isError());
 
         } catch (JsonProcessingException e) {
@@ -159,6 +183,88 @@ public class ControlWebSocketHandler extends TextWebSocketHandler {
     }
 
     /**
+     * 기여모드 메시지를 처리
+     *
+     * @param session WebSocket 세션
+     * @param payload 기여모드 메시지 JSON
+     */
+    private void handleContributionMessage(WebSocketSession session, String payload) {
+        try {
+            JsonNode jsonNode = objectMapper.readTree(payload);
+
+            ControlDto.ContributionMessage contributionMessage = new ControlDto.ContributionMessage();
+            contributionMessage.setType("save_contribution_path");
+            contributionMessage.setSessionId(jsonNode.get("sessionId").asText());
+            contributionMessage.setTask(jsonNode.get("task").asText());
+
+            List<ControlDto.ContributionStep> steps = objectMapper.convertValue(
+                jsonNode.get("steps"),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, ControlDto.ContributionStep.class)
+            );
+            contributionMessage.setSteps(steps);
+
+            if (jsonNode.has("isPartial")) {
+                contributionMessage.setPartial(jsonNode.get("isPartial").asBoolean());
+            }
+            if (jsonNode.has("isComplete")) {
+                contributionMessage.setComplete(jsonNode.get("isComplete").asBoolean());
+            }
+            if (jsonNode.has("totalSteps")) {
+                contributionMessage.setTotalSteps(jsonNode.get("totalSteps").asInt());
+            }
+
+            log.info("기여모드 메시지 수신: sessionId=[{}], contributionSessionId=[{}], stepCount=[{}]",
+                    session.getId(), contributionMessage.getSessionId(), contributionMessage.getSteps().size());
+
+            mcpIntegrationService.sendContributionData(contributionMessage);
+
+            ControlDto.ContributionResponse response = new ControlDto.ContributionResponse(
+                    "contribution_response",
+                    contributionMessage.getSessionId(),
+                    true,
+                    "기여모드 데이터가 성공적으로 저장되었습니다.",
+                    contributionMessage.getSteps().size()
+            );
+
+            String responseJson = objectMapper.writeValueAsString(response);
+            session.sendMessage(new TextMessage(responseJson));
+
+            log.info("기여모드 처리 완료: sessionId=[{}], contributionSessionId=[{}]",
+                    session.getId(), contributionMessage.getSessionId());
+
+        } catch (Exception e) {
+            log.error("기여모드 메시지 처리 실패: sessionId=[{}]", session.getId(), e);
+            sendContributionErrorResponse(session, "기여모드 데이터 처리 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 기여모드 오류 응답을 전송
+     *
+     * @param session WebSocket 세션
+     * @param errorMessage 오류 메시지
+     */
+    private void sendContributionErrorResponse(WebSocketSession session, String errorMessage) {
+        try {
+            ControlDto.ContributionResponse errorResponse = new ControlDto.ContributionResponse(
+                    "contribution_response",
+                    "unknown",
+                    false,
+                    errorMessage,
+                    0
+            );
+
+            String errorJson = objectMapper.writeValueAsString(errorResponse);
+            session.sendMessage(new TextMessage(errorJson));
+
+            log.debug("기여모드 오류 응답 전송 완료: sessionId=[{}], error=[{}]", session.getId(), errorMessage);
+
+        } catch (IOException e) {
+            log.error("기여모드 오류 응답 전송 실패: sessionId=[{}]", session.getId(), e);
+        }
+    }
+
+    /**
      * 새로 연결된 클라이언트에 환영 메시지를 전송
      *
      * @param session WebSocket 세션
@@ -166,20 +272,20 @@ public class ControlWebSocketHandler extends TextWebSocketHandler {
     private void sendWelcomeMessage(WebSocketSession session) {
         try {
             String welcomeMessage = String.format(
-                ErrorMessages.WebSocket.WELCOME_MESSAGE_PREFIX + "%s", 
+                ErrorMessages.WebSocket.WELCOME_MESSAGE_PREFIX + "%s",
                 String.join(", ", toolRegistry.getAvailableToolNames())
             );
-            
+
             ControlDto.ToolResult welcomeResult = new ControlDto.ToolResult(
-                java.util.List.of(new ControlDto.TextContent(welcomeMessage)), 
+                java.util.List.of(new ControlDto.TextContent(welcomeMessage)),
                 false
             );
-            
+
             String welcomeJson = objectMapper.writeValueAsString(welcomeResult);
             session.sendMessage(new TextMessage(welcomeJson));
-            
+
             log.debug("환영 메시지 전송 완료: sessionId=[{}]", session.getId());
-            
+
         } catch (IOException e) {
             log.warn("환영 메시지 전송 실패: sessionId=[{}]", session.getId(), e);
         }
