@@ -25,4 +25,9 @@ public interface OAuth2Response {
      * 사용자 이름
      */
     String getName();
+
+    /**
+     * 사용자 휴대폰 번호
+     */
+    String getPhoneNumber();
 }

@@ -14,7 +14,8 @@ import java.util.Map;
  *   "response": {
  *     "id": "32742776",
  *     "name": "홍길동",
- *     "email": "openapi@naver.com"
+ *     "email": "openapi@naver.com",
+ *     "mobile": "010-1234-5678"
  *   }
  * }
  */
@@ -53,5 +54,15 @@ public class NaverOAuth2Response implements OAuth2Response {
             return null;
         }
         return (String) response.get("name");
+    }
+
+    @Override
+    public String getPhoneNumber() {
+        Map<String, Object> response = (Map<String, Object>) attribute.get("response");
+        if (response == null) {
+            return null;
+        }
+        // 네이버는 'mobile' 필드로 휴대폰 번호를 제공
+        return (String) response.get("mobile");
     }
 }

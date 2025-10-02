@@ -39,7 +39,7 @@ public class MemberController {
         
         Long memberId = userDetails.getMemberId();
         MemberResponse memberResponse = memberService.getMemberInfo(memberId);
-        
+
         return ResponseEntity.ok(ApiResponse.success(memberResponse));
     }
 }

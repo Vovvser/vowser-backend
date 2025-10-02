@@ -36,7 +36,12 @@ public class MemberResponse {
      * 네이버 ID
      */
     private String naverId;
-    
+
+    /**
+     * 휴대폰 번호
+     */
+    private String phoneNumber;
+
     /**
      * 가입일시
      */
@@ -56,6 +61,7 @@ public class MemberResponse {
                 .email(member.getEmail())
                 .name(member.getName())
                 .naverId(member.getNaverId())
+                .phoneNumber(member.getPhoneNumber())
                 .createdAt(member.getCreatedAt())
                 .updatedAt(member.getUpdatedAt())
                 .build();
