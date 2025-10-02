@@ -98,4 +98,8 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
     public String getMemberName() {
         return member.getName();
     }
+
+    public String getPhoneNumber() {
+        return member.getPhoneNumber();
+    }
 }

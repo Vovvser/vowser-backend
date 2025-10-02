@@ -51,16 +51,22 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String email = oAuth2Response.getEmail();
         String providerId = oAuth2Response.getProviderId();
         String name = oAuth2Response.getName();
-        
+        String phoneNumber = oAuth2Response.getPhoneNumber();
+
         if (email == null || email.isEmpty()) {
             log.error("OAuth2 로그인 실패: 이메일 정보가 없습니다.");
             throw new OAuth2AuthenticationException("이메일 정보를 제공하지 않는 계정입니다.");
         }
+
+        if (phoneNumber == null || phoneNumber.isEmpty()) {
+            log.error("OAuth2 로그인 실패: 휴대폰 번호 정보가 없습니다.");
+            throw new OAuth2AuthenticationException("휴대폰 번호 정보를 제공하지 않는 계정입니다.");
+        }
         
         // 4. 기존 회원 조회 또는 신규 회원 생성
         Member member = memberRepository.findByEmail(email)
-                .map(existingMember -> updateMember(existingMember, name))
-                .orElseGet(() -> createMember(email, providerId, name));
+                .map(existingMember -> updateMember(existingMember, name, phoneNumber))
+                .orElseGet(() -> createMember(email, providerId, name, phoneNumber));
         
         log.info("OAuth2 로그인 성공: memberId={}, email={}", member.getId(), member.getEmail());
         
@@ -71,11 +77,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     /**
      * 신규 회원 생성 (자동 가입)
      */
-    private Member createMember(String email, String providerId, String name) {
+    private Member createMember(String email, String providerId, String name, String phoneNumber) {
         Member newMember = Member.builder()
                 .email(email)
                 .naverId(providerId)
                 .name(name != null ? name : "네이버 사용자")
+                .phoneNumber(phoneNumber)
                 .build();
         
         Member savedMember = memberRepository.save(newMember);
@@ -87,14 +94,16 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     /**
      * 기존 회원 정보 업데이트
      */
-    private Member updateMember(Member member, String name) {
-        // 이름이 변경된 경우에만 업데이트
+    private Member updateMember(Member member, String name, String phoneNumber) {
+        // 이름이 변경된 경우 업데이트
         if (name != null && !name.equals(member.getName())) {
             member.updateName(name);
             memberRepository.save(member);
-            log.info("회원 정보 업데이트: memberId={}, newName={}", member.getId(), name);
+            log.info("회원 이름 업데이트: memberId={}, newName={}", member.getId(), name);
         }
-        
+
+        // 휴대폰 번호는 OAuth2로 받은 값으로 업데이트하지 않음 (기존 값 유지)
+
         return member;
     }
 }

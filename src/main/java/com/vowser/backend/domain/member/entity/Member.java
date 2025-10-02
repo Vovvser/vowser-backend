@@ -10,7 +10,8 @@ import lombok.*;
 @Entity
 @Table(name = "members", indexes = {
     @Index(name = "idx_member_email", columnList = "email", unique = true),
-    @Index(name = "idx_member_naver_id", columnList = "naver_id", unique = true)
+    @Index(name = "idx_member_naver_id", columnList = "naver_id", unique = true),
+    @Index(name = "idx_member_phone", columnList = "phone_number", unique = true)
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -29,22 +30,27 @@ public class Member extends BaseEntity {
     
     @Column(name = "naver_id", nullable = false, unique = true, length = 100)
     private String naverId;  // 네이버에서 제공하는 고유 ID
-    
+
+    @Column(name = "phone_number", nullable = false, unique = true, length = 20)
+    private String phoneNumber;  // 휴대폰 번호
+
     @Builder
-    private Member(String email, String name, String naverId) {
+    private Member(String email, String name, String naverId, String phoneNumber) {
         this.email = email;
         this.name = name;
         this.naverId = naverId;
+        this.phoneNumber = phoneNumber;
     }
     
     /**
      * 네이버 OAuth2 정보로 회원 생성 (자동 회원가입)
      */
-    public static Member createNaverMember(String email, String name, String naverId) {
+    public static Member createNaverMember(String email, String name, String naverId, String phoneNumber) {
         return Member.builder()
                 .email(email)
                 .name(name)
                 .naverId(naverId)
+                .phoneNumber(phoneNumber)
                 .build();
     }
     
