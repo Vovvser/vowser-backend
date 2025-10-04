@@ -104,7 +104,10 @@ public class NavigationDto {
 
     /**
      * MCP 서버에서 반환된 개별 매칭 경로
+     *
+     * @deprecated Use com.vowser.backend.api.dto.mcp.SearchPathResponse.MatchedPath instead (db-refactor)
      */
+    @Deprecated
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -112,18 +115,42 @@ public class NavigationDto {
     public static class McpMatchedPath {
         private String pathId;
         private Double score;
-        
+
         @JsonProperty("total_weight")
         private Integer totalWeight;
-        
+
         private String lastUsed;
         private Double estimatedTime;
         private List<McpStep> steps;
     }
 
     /**
-     * MCP 서버 응답 내 개별 단계
+     * taskIntent 기반 검색 구조
      */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class McpMatchedPathNew {
+        private String domain;
+
+        @JsonProperty("task_intent")
+        private String taskIntent;
+
+        @JsonProperty("relevance_score")
+        private Double relevanceScore;
+
+        private Integer weight;
+
+        private List<McpStepNew> steps;
+    }
+
+    /**
+     * MCP 서버 응답 내 개별 단계
+     *
+     * @deprecated Use com.vowser.backend.api.dto.mcp.SearchPathResponse.StepResponse instead (db-refactor)
+     */
+    @Deprecated
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -133,5 +160,38 @@ public class NavigationDto {
         private String action;
         private String url;
         private String selector;
+    }
+
+    /**
+     * 다중 셀렉터, 입력/대기 지원
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class McpStepNew {
+        private Integer order;
+        private String url;
+        private String action;  // "click" | "input" | "wait"
+        private List<String> selectors;
+        private String description;
+
+        @JsonProperty("is_input")
+        private Boolean isInput;
+
+        @JsonProperty("input_type")
+        private String inputType;
+
+        @JsonProperty("input_placeholder")
+        private String inputPlaceholder;
+
+        @JsonProperty("should_wait")
+        private Boolean shouldWait;
+
+        @JsonProperty("wait_message")
+        private String waitMessage;
+
+        @JsonProperty("text_labels")
+        private List<String> textLabels;
     }
 }
