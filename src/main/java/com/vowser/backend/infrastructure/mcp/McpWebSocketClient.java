@@ -403,7 +403,17 @@ public class McpWebSocketClient {
         public void onMessage(WebSocket webSocket, String text) {
             log.info("MCP 서버에서 메시지 수신: messageLength=[{}]", text.length());
             log.debug("MCP 서버 메시지 내용: {}", text);
-            
+
+            if (!pendingRequests.isEmpty()) {
+                String firstKey = pendingRequests.keySet().iterator().next();
+                CompletableFuture<String> future = pendingRequests.remove(firstKey);
+                if (future != null && !future.isDone()) {
+                    future.complete(text);
+                    log.debug("CompletableFuture 응답 완료: requestId=[{}]", firstKey);
+                    return;
+                }
+            }
+
             try {
                 controlService.relayMcpResponse(text);
                 log.debug("MCP 응답 클라이언트 중계 완료");
