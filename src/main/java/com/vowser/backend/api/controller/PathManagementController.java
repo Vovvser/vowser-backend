@@ -12,8 +12,6 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * MCP 서버 경로 관리 API 컨트롤러
- *
- * db-refactor 브랜치의 새로운 API 구조를 사용
  */
 @Slf4j
 @Tag(name = "Path Management", description = "경로 저장/검색/관리 API (db-refactor)")
@@ -25,7 +23,7 @@ public class PathManagementController {
     private final McpWebSocketClient mcpClient;
 
     /**
-     * 경로 저장 (새 구조)
+     * 경로 저장
      *
      * POST /api/v1/paths
      * Body: PathSubmission
@@ -39,7 +37,7 @@ public class PathManagementController {
     }
 
     /**
-     * 자연어 경로 검색 (새 구조)
+     * 자연어 경로 검색
      *
      * GET /api/v1/paths/search?query=유튜브 음악&limit=3&domain=youtube.com
      */

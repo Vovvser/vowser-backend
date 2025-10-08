@@ -21,15 +21,14 @@ public final class McpConstants {
         public static final String FIND_POPULAR_PATHS = "find_popular_paths";
         public static final String CLEANUP_PATHS = "cleanup_paths";
         public static final String SAVE_CONTRIBUTION_PATH = "save_contribution_path";
+
+        @Deprecated
         public static final String SEARCH_PATH_RESULT = "search_path_result";
+        @Deprecated
         public static final String SAVE_PATH_RESULT = "save_path_result";
     }
     
     public static final class Status {
         public static final String SUCCESS = "success";
-    }
-    
-    public static final class ExcludedDomains {
-        public static final String EXAMPLE_COM = "example.com";
     }
 }

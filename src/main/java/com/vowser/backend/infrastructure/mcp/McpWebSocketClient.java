@@ -305,7 +305,7 @@ public class McpWebSocketClient {
 
         try {
             Map<String, Object> message = Map.of(
-                "type", McpConstants.MessageTypes.SEARCH_PATH,
+                "type", McpConstants.MessageTypes.SEARCH_NEW_PATH,
                 "data", Map.of(
                     "query", transcript.trim(),
                     "limit", NetworkConstants.MCP.SEARCH_PATH_LIMIT,
