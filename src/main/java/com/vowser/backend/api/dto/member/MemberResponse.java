@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -43,6 +44,11 @@ public class MemberResponse {
     private String phoneNumber;
 
     /**
+     * 생년월일
+     */
+    private LocalDate birthdate;
+
+    /**
      * 가입일시
      */
     private LocalDateTime createdAt;
@@ -62,6 +68,7 @@ public class MemberResponse {
                 .name(member.getName())
                 .naverId(member.getNaverId())
                 .phoneNumber(member.getPhoneNumber())
+                .birthdate(member.getBirthdate())
                 .createdAt(member.getCreatedAt())
                 .updatedAt(member.getUpdatedAt())
                 .build();
