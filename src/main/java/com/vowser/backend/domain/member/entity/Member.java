@@ -4,6 +4,8 @@ import com.vowser.backend.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 /**
  * 회원 엔티티 (네이버 소셜 로그인 전용)
  */
@@ -34,23 +36,28 @@ public class Member extends BaseEntity {
     @Column(name = "phone_number", nullable = false, unique = true, length = 20)
     private String phoneNumber;  // 휴대폰 번호
 
+    @Column(name = "birthdate", nullable = false)
+    private LocalDate birthdate;  // 생년월일
+
     @Builder
-    private Member(String email, String name, String naverId, String phoneNumber) {
+    private Member(String email, String name, String naverId, String phoneNumber, LocalDate birthdate) {
         this.email = email;
         this.name = name;
         this.naverId = naverId;
         this.phoneNumber = phoneNumber;
+        this.birthdate = birthdate;
     }
     
     /**
      * 네이버 OAuth2 정보로 회원 생성 (자동 회원가입)
      */
-    public static Member createNaverMember(String email, String name, String naverId, String phoneNumber) {
+    public static Member createNaverMember(String email, String name, String naverId, String phoneNumber, LocalDate birthdate) {
         return Member.builder()
                 .email(email)
                 .name(name)
                 .naverId(naverId)
                 .phoneNumber(phoneNumber)
+                .birthdate(birthdate)
                 .build();
     }
     

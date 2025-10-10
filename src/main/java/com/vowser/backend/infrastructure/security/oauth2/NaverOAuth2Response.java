@@ -65,4 +65,30 @@ public class NaverOAuth2Response implements OAuth2Response {
         // 네이버는 'mobile' 필드로 휴대폰 번호를 제공
         return (String) response.get("mobile");
     }
+
+    @Override
+    public String getBirthdate() {
+        Map<String, Object> response = (Map<String, Object>) attribute.get("response");
+        if (response == null) {
+            return null;
+        }
+        String birthyear = (String) response.get("birthyear");
+        String birthday = (String) response.get("birthday");  // 형식: MM-DD 또는 MMDD
+
+        if (birthyear == null || birthyear.isBlank() || birthday == null || birthday.isBlank()) {
+            return null;
+        }
+
+        String normalizedBirthday = birthday.contains("-")
+                ? birthday
+                : birthday.length() == 4
+                    ? birthday.substring(0, 2) + "-" + birthday.substring(2)
+                    : null;
+
+        if (normalizedBirthday == null) {
+            return null;
+        }
+
+        return birthyear + "-" + normalizedBirthday;
+    }
 }

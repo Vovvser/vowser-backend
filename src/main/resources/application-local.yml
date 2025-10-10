@@ -33,6 +33,8 @@ spring:
             scope:
               - name
               - email
+              - mobile
+              - birthday
             client-name: Naver
         provider:
           naver:
@@ -60,3 +62,5 @@ logging:
     org.springframework.web: ${LOG_LEVEL_SPRING:DEBUG}
     org.hibernate.SQL: ${LOG_LEVEL_SQL:DEBUG}
     com.vowser.backend: ${LOG_LEVEL_APP:DEBUG}
+    org.apache.tomcat: ERROR
+    org.apache.coyote: ERROR

@@ -12,6 +12,9 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+
 /**
  * OAuth2 로그인 시 사용자 정보를 처리하는 서비스
  * 
@@ -52,6 +55,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String providerId = oAuth2Response.getProviderId();
         String name = oAuth2Response.getName();
         String phoneNumber = oAuth2Response.getPhoneNumber();
+        String birthdateRaw = oAuth2Response.getBirthdate();
 
         if (email == null || email.isEmpty()) {
             log.error("OAuth2 로그인 실패: 이메일 정보가 없습니다.");
@@ -62,11 +66,18 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             log.error("OAuth2 로그인 실패: 휴대폰 번호 정보가 없습니다.");
             throw new OAuth2AuthenticationException("휴대폰 번호 정보를 제공하지 않는 계정입니다.");
         }
+
+        if (birthdateRaw == null || birthdateRaw.isEmpty()) {
+            log.error("OAuth2 로그인 실패: 생년월일 정보가 없습니다.");
+            throw new OAuth2AuthenticationException("생년월일 정보를 제공하지 않는 계정입니다.");
+        }
+
+        LocalDate birthdate = parseBirthdate(birthdateRaw);
         
         // 4. 기존 회원 조회 또는 신규 회원 생성
         Member member = memberRepository.findByEmail(email)
                 .map(existingMember -> updateMember(existingMember, name, phoneNumber))
-                .orElseGet(() -> createMember(email, providerId, name, phoneNumber));
+                .orElseGet(() -> createMember(email, providerId, name, phoneNumber, birthdate));
         
         log.info("OAuth2 로그인 성공: memberId={}, email={}", member.getId(), member.getEmail());
         
@@ -77,12 +88,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     /**
      * 신규 회원 생성 (자동 가입)
      */
-    private Member createMember(String email, String providerId, String name, String phoneNumber) {
+    private Member createMember(String email, String providerId, String name, String phoneNumber, LocalDate birthdate) {
         Member newMember = Member.builder()
                 .email(email)
                 .naverId(providerId)
                 .name(name != null ? name : "네이버 사용자")
                 .phoneNumber(phoneNumber)
+                .birthdate(birthdate)
                 .build();
         
         Member savedMember = memberRepository.save(newMember);
@@ -105,5 +117,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // 휴대폰 번호는 OAuth2로 받은 값으로 업데이트하지 않음 (기존 값 유지)
 
         return member;
+    }
+
+    private LocalDate parseBirthdate(String birthdateRaw) {
+        try {
+            return LocalDate.parse(birthdateRaw);
+        } catch (DateTimeParseException e) {
+            log.error("OAuth2 로그인 실패: 생년월일 형식 오류, value={}", birthdateRaw, e);
+            throw new OAuth2AuthenticationException("생년월일 형식이 올바르지 않습니다.");
+        }
     }
 }

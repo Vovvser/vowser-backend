@@ -30,6 +30,7 @@ public class TestViewController {
             model.addAttribute("email", userDetails.getEmail());
             model.addAttribute("name", userDetails.getName());
             model.addAttribute("phoneNumber", userDetails.getPhoneNumber());
+            model.addAttribute("birthdate", userDetails.getBirthdate());
         }
         
         log.info("테스트 페이지 접속: 인증상태={}", isAuthenticated);

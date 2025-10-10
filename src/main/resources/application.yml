@@ -16,6 +16,12 @@ spring:
     compatibility-verifier:
       enabled: false
 
+server:
+  tomcat:
+    uri-encoding: UTF-8
+  error:
+    include-message: always
+
 management:
   endpoints:
     web:

@@ -30,4 +30,9 @@ public interface OAuth2Response {
      * 사용자 휴대폰 번호
      */
     String getPhoneNumber();
+
+    /**
+     * 사용자 생년월일 (yyyy-MM-dd 형식)
+     */
+    String getBirthdate();
 }
