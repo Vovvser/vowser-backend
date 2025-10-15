@@ -56,8 +56,6 @@ public class SpeechProcessingService {
         }
 
         try {
-            mcpIntegrationService.sendVoiceCommand(transcript, request.getSessionId());
-
             SpeechResponse response = SpeechResponse.builder()
                     .success(true)
                     .transcript(transcript)
