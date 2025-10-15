@@ -46,6 +46,7 @@ public class SecurityConfig {
         "/health",
         "/test",  // API 테스트 페이지
         "/control",  // WebSocket 엔드포인트
+		"/api/v1/path/**", // Path API
         "/api/v1/speech/**"  // Speech API
     };
     
