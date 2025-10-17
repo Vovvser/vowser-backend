@@ -114,7 +114,7 @@ public class McpWebSocketClient {
      * @param limit 최대 결과 수
      * @param domainHint 선택적 도메인 힌트 (예: "youtube.com")
      */
-    public CompletableFuture<SearchPathResponse> searchPath(String query, int limit, String domainHint) {
+    public CompletableFuture<String> searchPath(String query, int limit, String domainHint) {
         log.info("Searching paths: \"{}\" (limit: {}, domain: {})",
                 query, limit, domainHint != null ? domainHint : "all");
 
@@ -130,17 +130,7 @@ public class McpWebSocketClient {
                 "data", data
         );
 
-        return sendRequest(message)
-                .thenApply(response -> parseResponse(response, SearchPathResponse.class))
-                .whenComplete((res, ex) -> {
-                    if (ex != null) {
-                        log.error("Failed to search paths", ex);
-                    } else {
-                        log.info("Found {} paths (search time: {}ms)",
-                                res.getData().getTotalMatched(),
-                                res.getData().getPerformance().getSearchTime());
-                    }
-                });
+        return sendRequest(message);
     }
 
     /**

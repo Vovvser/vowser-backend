@@ -1,11 +1,15 @@
 package com.vowser.backend.api.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vowser.backend.api.dto.mcp.*;
 import com.vowser.backend.infrastructure.mcp.McpWebSocketClient;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.concurrent.CompletableFuture;
@@ -43,13 +47,22 @@ public class PathManagementController {
      */
     @Operation(summary = "경로 검색", description = "자연어 쿼리로 경로를 검색")
     @GetMapping("/search")
-    public CompletableFuture<SearchPathResponse> searchPath(
+    public CompletableFuture<ResponseEntity<String>> searchPath(
             @RequestParam String query,
             @RequestParam(defaultValue = "3") int limit,
             @RequestParam(required = false) String domain) {
 
         log.info("Received search request: query=[{}], domain=[{}]", query, domain);
-        return mcpClient.searchPath(query, limit, domain);
+
+        return mcpClient.searchPath(query, limit, domain).thenApply(jsonString -> {
+            log.info("Relaying raw JSON response to client: {}", jsonString);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
+            return new ResponseEntity<>(jsonString, headers, HttpStatus.OK);
+        }).exceptionally(throwable -> {
+            log.error("Failed to get search path response from MCP", throwable);
+            return new ResponseEntity<>("{\"error\":\"Failed to get response from server\"}", HttpStatus.INTERNAL_SERVER_ERROR);
+        });
     }
 
     /**
