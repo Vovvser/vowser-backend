@@ -96,27 +96,6 @@ public class NavigationDto {
     }
 
     /**
-     * taskIntent 기반 검색 구조
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class McpMatchedPathNew {
-        private String domain;
-
-        @JsonProperty("task_intent")
-        private String taskIntent;
-
-        @JsonProperty("relevance_score")
-        private Double relevanceScore;
-
-        private Integer weight;
-
-        private List<McpStepNew> steps;
-    }
-
-    /**
      * MCP 서버 응답 내 개별 단계
      */
     @Deprecated
@@ -131,36 +110,4 @@ public class NavigationDto {
         private String selector;
     }
 
-    /**
-     * 다중 셀렉터, 입력/대기 지원
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class McpStepNew {
-        private Integer order;
-        private String url;
-        private String action;
-        private List<String> selectors;
-        private String description;
-
-        @JsonProperty("is_input")
-        private Boolean isInput;
-
-        @JsonProperty("input_type")
-        private String inputType;
-
-        @JsonProperty("input_placeholder")
-        private String inputPlaceholder;
-
-        @JsonProperty("should_wait")
-        private Boolean shouldWait;
-
-        @JsonProperty("wait_message")
-        private String waitMessage;
-
-        @JsonProperty("text_labels")
-        private List<String> textLabels;
-    }
 }
