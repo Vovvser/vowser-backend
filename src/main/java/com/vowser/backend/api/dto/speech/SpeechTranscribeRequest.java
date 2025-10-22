@@ -43,9 +43,6 @@ public class SpeechTranscribeRequest {
     @Schema(description = "알파벳 인식 최적화 모드 활성화", example = "false")
     private boolean enableAlphabetMode = false;
 
-    @Schema(description = "코드/명령어 인식 모드 활성화", example = "false")
-    private boolean enableSnippetMode = false;
-
     @Schema(description = "추가 커스텀 phrase hints")
     private List<String> customPhrases;
 }

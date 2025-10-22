@@ -14,16 +14,14 @@ public class SpeechModeService {
     public EnumSet<SpeechMode> buildModes(
             boolean enableGeneralMode,
             boolean enableNumberMode,
-            boolean enableAlphabetMode,
-            boolean enableSnippetMode
+            boolean enableAlphabetMode
     ) {
         EnumSet<SpeechMode> modes = EnumSet.noneOf(SpeechMode.class);
         
         if (enableGeneralMode) modes.add(SpeechMode.GENERAL);
         if (enableNumberMode) modes.add(SpeechMode.NUMBER);
         if (enableAlphabetMode) modes.add(SpeechMode.ALPHABET);
-        if (enableSnippetMode) modes.add(SpeechMode.SNIPPET);
-        
+
         log.info("Built speech recognition modes: {}", modes);
         return modes;
     }
