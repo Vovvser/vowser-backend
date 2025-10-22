@@ -11,7 +11,6 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -118,9 +117,14 @@ public class NaverSpeechService {
 
     private String applyModePostProcessing(String rawText, EnumSet<SpeechMode> modes) {
         String result = rawText;
+
         if (modes.contains(SpeechMode.NUMBER)) {
             result = NumberNormalizer.normalize(result);
         }
+        if (modes.contains(SpeechMode.ALPHABET)) {
+            result = AlphabetNormalizer.normalize(result);
+        }
+
         return result;
     }
 
@@ -281,6 +285,33 @@ public class NaverSpeechService {
                 return digits.replaceFirst("^(\\d{3})(\\d{4})(\\d{4})$", "$1-$2-$3");
             }
             return digits;
+        }
+    }
+
+    private static final class AlphabetNormalizer {
+
+        private static final Map<String, String> KOR_TO_ENG = Map.ofEntries(
+                Map.entry("에이", "A"), Map.entry("비", "B"), Map.entry("씨", "C"),
+                Map.entry("디", "D"), Map.entry("이", "E"), Map.entry("에프", "F"),
+                Map.entry("지", "G"), Map.entry("에이치", "H"), Map.entry("아이", "I"),
+                Map.entry("제이", "J"), Map.entry("케이", "K"), Map.entry("엘", "L"),
+                Map.entry("엠", "M"), Map.entry("엔", "N"), Map.entry("오", "O"),
+                Map.entry("피", "P"), Map.entry("큐", "Q"), Map.entry("알", "R"),
+                Map.entry("에스", "S"), Map.entry("티", "T"), Map.entry("유", "U"),
+                Map.entry("브이", "V"), Map.entry("더블유", "W"), Map.entry("엑스", "X"),
+                Map.entry("와이", "Y"), Map.entry("지", "Z")
+        );
+
+        static String normalize(String input) {
+            if (input == null || input.isBlank()) return input;
+
+            String result = input;
+            for (var entry : KOR_TO_ENG.entrySet()) {
+                result = result.replaceAll("(?<![가-힣])" + entry.getKey() + "(?![가-힣])", entry.getValue());
+            }
+
+            result = result.replaceAll("(?<=\\b[A-Z])\\s+(?=[A-Z]\\b)", "");
+            return result.trim();
         }
     }
 
