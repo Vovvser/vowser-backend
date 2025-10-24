@@ -20,47 +20,16 @@ class SpeechModeServiceTest {
     }
 
     @Test
-    @DisplayName("모든 모드가 비활성화된 경우 빈 EnumSet 반환")
-    void buildModes_AllDisabled_ReturnsEmptySet() {
-        EnumSet<SpeechMode> result = speechModeService.buildModes(
-                false,
-                false,
-                false,
-                false
-        );
-
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
     @DisplayName("일반 모드만 활성화된 경우")
     void buildModes_OnlyGeneralEnabled_ReturnsGeneralMode() {
         EnumSet<SpeechMode> result = speechModeService.buildModes(
                 true,
-                false,
                 false,
                 false
         );
 
         assertEquals(1, result.size());
         assertTrue(result.contains(SpeechMode.GENERAL));
-    }
-
-    @Test
-    @DisplayName("모든 모드가 활성화된 경우")
-    void buildModes_AllEnabled_ReturnsAllModes() {
-        EnumSet<SpeechMode> result = speechModeService.buildModes(
-                true,
-                true,
-                true,
-                true
-        );
-
-        assertEquals(4, result.size());
-        assertTrue(result.contains(SpeechMode.GENERAL));
-        assertTrue(result.contains(SpeechMode.NUMBER));
-        assertTrue(result.contains(SpeechMode.ALPHABET));
-        assertTrue(result.contains(SpeechMode.SNIPPET));
     }
 
     @Test

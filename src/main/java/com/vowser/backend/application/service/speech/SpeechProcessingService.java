@@ -38,8 +38,6 @@ public class SpeechProcessingService {
                         profile.getMember() != null ? profile.getMember().getId() : "session",
                         profile.getDisabilityType()));
 
-        // TODO: 추후 profile을 사용하여 STT 옵션(language 등)을 변경하거나, MCP에 추가 컨텍스트를 전달하는 로직 추가 가능
-
         boolean hasSpecialModes = request.isEnableNumberMode();
         boolean hasCustomPhrases = request.getCustomPhrases() != null && !request.getCustomPhrases().isEmpty();
 
@@ -50,7 +48,7 @@ public class SpeechProcessingService {
         } else {
             EnumSet<SpeechMode> modes = speechModeService.buildModes(
                     request.isEnableGeneralMode(), request.isEnableNumberMode(),
-                    request.isEnableAlphabetMode(), request.isEnableSnippetMode());
+                    request.isEnableAlphabetMode());
             transcript = speechService.transcribeWithModes(request.getAudioFile(), modes, request.getCustomPhrases());
             log.info("모드별 음성 인식 완료: sessionId=[{}], transcript=[{}]", request.getSessionId(), transcript);
         }
