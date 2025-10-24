@@ -19,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
-import java.util.List;
 
 /**
  * 네이버 클라우드 플랫폼 STT (Speech-to-Text)를 사용해 음성을 텍스트로 변환
@@ -119,7 +118,7 @@ public class NaverSpeechService {
     /**
      * 모드 기반 음성 인식 처리
      */
-    public String transcribeWithModes(MultipartFile audioFile, EnumSet<SpeechMode> modes, List<String> customPhrases) {
+    public String transcribeWithModes(MultipartFile audioFile, EnumSet<SpeechMode> modes) {
         log.info("모드 기반 음성 파일 수신: {}, 크기: {} KB, 활성화된 모드: {}",
                 audioFile.getOriginalFilename(),
                 audioFile.getSize() / NetworkConstants.DataSize.BYTES_PER_KB,

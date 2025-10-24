@@ -38,7 +38,7 @@ public class SpeechService {
      * @return 모드별 후처리가 적용된 인식 텍스트
      */
     public String transcribeWithModes(MultipartFile audioFile, EnumSet<SpeechMode> modes, List<String> customPhrases) {
-        return naverSpeechService.transcribeWithModes(audioFile, modes, customPhrases);
+        return naverSpeechService.transcribeWithModes(audioFile, modes);
     }
 
 }
