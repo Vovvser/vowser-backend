@@ -1,6 +1,7 @@
 package com.vowser.backend.api.dto.mcp;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -37,6 +38,7 @@ public class PopularPathsResponse {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class PopularPath {
         @JsonProperty("task_intent")
+        @JsonAlias("taskIntent")
         private String taskIntent;
 
         private Integer weight;

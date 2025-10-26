@@ -126,7 +126,7 @@ public class ControlDto {
     public static class ContributionMessage {
         private String type = "save_contribution_path";
         private String sessionId;
-        private String task;
+        private String taskIntent;
         private List<ContributionStep> steps;
         private boolean isPartial = false;
         private boolean isComplete = false;

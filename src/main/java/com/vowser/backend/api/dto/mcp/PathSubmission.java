@@ -1,5 +1,6 @@
 package com.vowser.backend.api.dto.mcp;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,9 +19,11 @@ import java.util.List;
 public class PathSubmission {
 
     @JsonProperty("session_id")
+    @JsonAlias("sessionId")
     private String sessionId;
 
     @JsonProperty("task_intent")
+    @JsonAlias("taskIntent")
     private String taskIntent;
 
     private String domain;

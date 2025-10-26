@@ -1,5 +1,6 @@
 package com.vowser.backend.api.dto.mcp;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -39,6 +40,7 @@ public class SavePathResponse {
         private String domain;
 
         @JsonProperty("task_intent")
+        @JsonAlias("taskIntent")
         private String taskIntent;
 
         @JsonProperty("steps_saved")

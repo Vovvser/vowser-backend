@@ -94,7 +94,7 @@ public class McpWebSocketClient {
 
         Map<String, Object> message = Map.of(
                 "type", McpConstants.MessageTypes.SAVE_NEW_PATH,
-                "data", pathSubmission
+                "data", toMcpCamelCase(pathSubmission)
         );
 
         return sendRequest(message)
@@ -106,6 +106,61 @@ public class McpWebSocketClient {
                         log.info("Path saved: {}", res.getData().getResult().getStatus());
                     }
                 });
+    }
+
+    /**
+     * MCP 서버가 기대하는 camelCase 키로 변환
+     */
+    private Map<String, Object> toMcpCamelCase(PathSubmission p) {
+        Map<String, Object> data = new HashMap<>();
+
+        String sessionId = p.getSessionId();
+        if (sessionId == null || sessionId.isBlank()) {
+            sessionId = java.util.UUID.randomUUID().toString();
+            log.warn("sessionId missing; generated new UUID: {}", sessionId);
+        }
+
+        data.put("sessionId", sessionId);
+        String taskIntent = p.getTaskIntent();
+        if (taskIntent == null || taskIntent.isBlank()) {
+            taskIntent = "unspecified";
+            log.warn("taskIntent missing; using fallback: '{}'", taskIntent);
+        }
+        data.put("taskIntent", taskIntent);
+        data.put("domain", p.getDomain());
+
+        if (p.getSteps() != null) {
+            java.util.List<Map<String, Object>> steps = new java.util.ArrayList<>();
+            for (com.vowser.backend.api.dto.mcp.StepData s : p.getSteps()) {
+                steps.add(toMcpCamelCase(s));
+            }
+            data.put("steps", steps);
+        } else {
+            data.put("steps", java.util.List.of());
+        }
+
+        return data;
+    }
+
+    private Map<String, Object> toMcpCamelCase(com.vowser.backend.api.dto.mcp.StepData s) {
+        Map<String, Object> m = new HashMap<>();
+        m.put("url", s.getUrl());
+        m.put("domain", s.getDomain());
+        m.put("selectors", s.getSelectors());
+        if (s.getAnchorPoint() != null) m.put("anchorPoint", s.getAnchorPoint());
+        if (s.getRelativePathFromAnchor() != null) m.put("relativePathFromAnchor", s.getRelativePathFromAnchor());
+        m.put("action", s.getAction());
+        if (s.getIsInput() != null) m.put("isInput", s.getIsInput());
+        if (s.getInputType() != null) m.put("inputType", s.getInputType());
+        if (s.getInputPlaceholder() != null) m.put("inputPlaceholder", s.getInputPlaceholder());
+        if (s.getShouldWait() != null) m.put("shouldWait", s.getShouldWait());
+        if (s.getWaitMessage() != null) m.put("waitMessage", s.getWaitMessage());
+        if (s.getMaxWaitTime() != null) m.put("maxWaitTime", s.getMaxWaitTime());
+        if (s.getDescription() != null) m.put("description", s.getDescription());
+        if (s.getTextLabels() != null) m.put("textLabels", s.getTextLabels());
+        if (s.getContextText() != null) m.put("contextText", s.getContextText());
+        if (s.getSuccessRate() != null) m.put("successRate", s.getSuccessRate());
+        return m;
     }
 
     /**
@@ -342,7 +397,7 @@ public class McpWebSocketClient {
                 "type", "save_contribution_path",
                 "data", Map.of(
                     "sessionId", contributionMessage.getSessionId(),
-                    "task", contributionMessage.getTask(),
+                    "task", contributionMessage.getTaskIntent(),
                     "steps", contributionMessage.getSteps(),
                     "isPartial", contributionMessage.isPartial(),
                     "isComplete", contributionMessage.isComplete(),

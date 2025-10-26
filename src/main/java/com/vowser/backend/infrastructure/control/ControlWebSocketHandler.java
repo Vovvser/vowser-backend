@@ -195,7 +195,7 @@ public class ControlWebSocketHandler extends TextWebSocketHandler {
             ControlDto.ContributionMessage contributionMessage = new ControlDto.ContributionMessage();
             contributionMessage.setType("save_contribution_path");
             contributionMessage.setSessionId(jsonNode.get("sessionId").asText());
-            contributionMessage.setTask(jsonNode.get("task").asText());
+            contributionMessage.setTaskIntent(jsonNode.get("taskIntent").asText());
 
             List<ControlDto.ContributionStep> steps = objectMapper.convertValue(
                 jsonNode.get("steps"),
