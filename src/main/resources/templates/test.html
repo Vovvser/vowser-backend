@@ -317,6 +317,36 @@
     </div>
     
     <script>
+        // OAuth2 코드 자동 교환 및 쿠키 설정
+        (function handleOAuthCode() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const code = params.get('code');
+                if (!code) return;
+
+                // 코드가 있으면 토큰 교환 요청 (쿠키 설정 목적)
+                fetch(`/api/auth/token/exchange?code=${encodeURIComponent(code)}`, {
+                    method: 'POST',
+                    credentials: 'include'
+                }).then(async (res) => {
+                    // 성공/실패에 관계없이 쿼리를 정리하고 새로고침
+                    if (res.ok) {
+                        // 쿠키가 설정되었으므로 새로고침 시 인증됨으로 표시됨
+                        window.history.replaceState({}, document.title, '/test');
+                        location.reload();
+                    } else {
+                        console.warn('토큰 교환 실패', await res.text());
+                        window.history.replaceState({}, document.title, '/test');
+                    }
+                }).catch(err => {
+                    console.error('토큰 교환 중 오류', err);
+                    window.history.replaceState({}, document.title, '/test');
+                });
+            } catch (e) {
+                console.error('OAuth 코드 처리 오류', e);
+            }
+        })();
+
         // API 호출 헬퍼 함수
         async function callApi(url, method = 'GET', body = null) {
             const options = {

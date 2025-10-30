@@ -125,7 +125,8 @@ public class AuthController {
      * OAuth2 인증 코드를 토큰으로 교환
      */
     @PostMapping("/token/exchange")
-    public ResponseEntity<?> exchangeCodeForToken(@RequestParam("code") String code) {
+    public ResponseEntity<?> exchangeCodeForToken(@RequestParam("code") String code,
+                                                  HttpServletResponse servletResponse) {
         log.info("토큰 교환 요청: code={}", code);
 
         try {
@@ -144,11 +145,14 @@ public class AuthController {
 
             log.info("토큰 교환 성공: memberId={}", tokenMap.get("memberId"));
 
+            cookieUtil.addAccessTokenCookie(servletResponse, accessToken);
+            cookieUtil.addRefreshTokenCookie(servletResponse, refreshToken);
+
             return ResponseEntity.ok(ApiResponse.success(TokenResponse.builder()
-					.accessToken(accessToken)
-					.refreshToken(refreshToken)
-					.tokenType("Bearer")
-					.build()));
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .tokenType("Bearer")
+                    .build()));
 
         } catch (Exception e) {
             log.error("토큰 교환 실패: {}", e.getMessage(), e);
