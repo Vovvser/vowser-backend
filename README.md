@@ -5,19 +5,13 @@
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg?logo=mysql&logoColor=white)](https://www.mysql.com)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-The Orchestration Layer for the Vowser Ecosystem.
-
-This repository hosts the backend services that power Vowser. It authenticates users, processes voice commands, connects to the MCP agent, and dispatches real-time browser automation commands to the client.
+This repository hosts the Vowser backend responsible for authentication, speech processing, and real-time browser control.
 
 ## Architecture
 
-Vowser operates on a distributed architecture. The `vowser-backend` acts as the **Spine** that connects the user-facing client and the AI agent.
+Vowser runs on a distributed architecture. The `vowser-backend` connects the client with the AI agent.
 
-`[vowser-client (Kotlin)] <=> [vowser-backend (Spring Boot)] <=> [vowser-agent-server (Python)]`
-
-- **vowser-client:** Compose Multiplatform desktop app that records voice and renders browser automation feedback.
-- **vowser-backend (This Repository):** Routes authentication, speech processing, accessibility personalization, and WebSocket control streams.
-- **vowser-agent-server:** MCP-based AI worker that interprets transcripts and generates browser actions.
+`[vowser-client (Kotlin)] <=> [vowser-backend (Java)] <=> [vowser-agent-server (Python)]`
 
 ## Code Structure
 
@@ -28,12 +22,12 @@ Vowser operates on a distributed architecture. The `vowser-backend` acts as the 
 │   │   ├── java/com/vowser/backend
 │   │   │   ├── VowserBackendApplication.java      # Spring Boot entry point
 │   │   │   ├── api/                               # REST controllers, DTOs, Swagger docs
-│   │   │   ├── application/                       # Orchestration services (auth, speech, control)
+│   │   │   ├── application/                       # Service logic for authentication, speech, control
 │   │   │   ├── domain/                            # JPA entities and repositories
 │   │   │   ├── infrastructure/                    # Config, WebSocket, security, MCP client, tools
 │   │   │   └── common/                            # Constants, enums, exceptions, shared utilities
 │   │   └── resources/                             # Profile-specific YAML and Thymeleaf templates
-│   └── test                                       # JUnit tests with audio fixtures & configs
+│   └── test                                       # JUnit tests with audio fixtures
 ├── docker-compose.yml                             # Local stack with MySQL, Redis, backend
 ├── Dockerfile                                     # Production-ready image build
 └── infra/                                         # Jenkins pipeline and deployment assets
@@ -41,12 +35,12 @@ Vowser operates on a distributed architecture. The `vowser-backend` acts as the 
 
 ## Features
 
-- **Voice Pipeline Orchestrator:** Normalizes number/alphabet modes and proxies speech recognition to Naver Cloud STT and Google Cloud Speech.
-- **Authentication & Session Management:** Naver OAuth2 login, JWT issuance, and refresh token storage backed by Redis.
-- **Real-time Control Bridge:** WebSocket broker that relays MCP agent responses to connected clients with pluggable browser tools.
-- **Accessibility Personalization:** Manages encrypted accessibility profiles and exposes tailored settings to the client.
-- **Path Insights & Analytics:** Provides MCP-facing APIs for path submission, popularity tracking, and graph statistics.
-- **Operations Ready:** Ships with Actuator probes, Swagger UI, caching controls, and structured logging for production monitoring.
+- **Voice Pipeline:** Normalizes numeric and alphabet modes, then streams audio to Naver Cloud STT.
+- **Authentication & Session Management:** Handles Naver OAuth2 login, issues JWTs, and stores refresh tokens in Redis.
+- **Real-time Control Bridge:** Relays vowser-agent-server responses to connected clients over WebSocket.
+- **Accessibility Personalization:** Manages encrypted accessibility profiles and serves tailored settings to the client.
+- **Path Insights & Analytics:** Offers APIs for path submission, popularity checks, and graph statistics to the vowser-agent-server.
+- **Operations Ready:** Provides Actuator, Swagger UI, caching controls, and structured logging for operational monitoring.
 
 ---
 
@@ -56,41 +50,41 @@ Vowser operates on a distributed architecture. The `vowser-backend` acts as the 
 
 - **JDK 21**
 - **Gradle Wrapper** (included)
-- **MySQL 8.x** and **Redis 7.x** (local installations or Docker Compose)
-- Credentials for **Naver Cloud STT** and **Google Cloud Speech**
+- **MySQL 8.0.43** and **Redis 7.0.15** (local installations or Docker Compose)
+- Credentials for **Naver Cloud STT**
 - OAuth client credentials for **Naver Login**
 
 ### Environment Setup
 
-1. Create a `.env.local` file (used by `docker-compose.yml`) with the core variables:
+1. Create a `.env.local` file (used by `docker-compose.yml`) with the required variables:
 
    ```dotenv
    DB_HOST=localhost
    DB_PORT=3306
    DB_NAME=vowser
-   DB_USERNAME=your_db_user
-   DB_PASSWORD=your_db_password
-   DB_ROOT_PASSWORD=your_root_password
+   DB_USERNAME=database_user
+   DB_PASSWORD=database_password
+   DB_ROOT_PASSWORD=root_password
    REDIS_HOST=localhost
    REDIS_PORT=6379
-   REDIS_PASSWORD=your_redis_password
-   JWT_SECRET=change_this_secret
+   REDIS_PASSWORD=redis_password
+   JWT_SECRET=must_change_secret
    JWT_ACCESS_TOKEN_VALIDITY=900
    JWT_REFRESH_TOKEN_VALIDITY=1209600
    JWT_ISSUER=vowser-backend
-   OAUTH2_NAVER_CLIENT_ID=your_oauth_client_id
-   OAUTH2_NAVER_CLIENT_SECRET=your_oauth_client_secret
+   OAUTH2_NAVER_CLIENT_ID=oauth_client_id
+   OAUTH2_NAVER_CLIENT_SECRET=oauth_client_secret
    OAUTH2_REDIRECT_URI=http://localhost:8080/login/oauth2/code/naver
    OAUTH2_SUCCESS_REDIRECT_URL=http://localhost:5173/auth/callback
-   NAVER_CLOUD_CLIENT_ID=your_naver_cloud_id
-   NAVER_CLOUD_CLIENT_SECRET=your_naver_cloud_secret
+   NAVER_CLOUD_CLIENT_ID=naver_cloud_id
+   NAVER_CLOUD_CLIENT_SECRET=naver_cloud_secret
    NAVER_CLOUD_STT_URL=https://naveropenapi.apigw.ntruss.com/recog/v1/stt
    GOOGLE_CREDENTIALS_JSON={"type":"service_account",...}
-   VOWSER_DB_ENCRYPTION_KEY=32_byte_hex_or_base64_key
+   VOWSER_DB_ENCRYPTION_KEY=32_byte_key
    ```
 
-2. Review `src/main/resources/application-local.yml` to adjust database or logging preferences.
-3. Ensure the MCP agent URL (`mcp.python.server.url`) points to the running `vowser-agent-server`.
+2. Review `src/main/resources/application-local.yml` to adjust database, logging, or caching settings.
+3. Confirm `mcp.python.server.url` points to the running `vowser-agent-server`.
 
 ### Run Locally
 
