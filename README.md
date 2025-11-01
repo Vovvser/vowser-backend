@@ -1,95 +1,126 @@
-# Vowser Backend
+# Vowser-Backend
 
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![License](https://img.shields.io/badge/license-Apache_2.0-blue)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.7-brightgreen)
-![Java](https://img.shields.io/badge/Java-21-orange)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.7-brightgreen.svg?logo=spring&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-21-orange.svg?logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg?logo=mysql&logoColor=white)](https://www.mysql.com)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-The Central Communication & Control Hub for the Vowser Ecosystem.
+The Orchestration Layer for the Vowser Ecosystem.
 
-This repository contains the source code for the backend server of Vowser, which acts as an API gateway and a real-time control hub. It connects the `vowser-client` (the user's interface) to the `vowser-mcp-server` (the AI analysis engine).
+This repository hosts the backend services that power Vowser. It authenticates users, processes voice commands, connects to the MCP agent, and dispatches real-time browser automation commands to the client.
 
 ## Architecture
 
-Vowser operates on a distributed architecture to maximize performance and maintainability. This `vowser-backend` server plays the role of the **"Spine" (척추)**, connecting the "Brain" and the "Face/Hands".
+Vowser operates on a distributed architecture. The `vowser-backend` acts as the **Spine** that connects the user-facing client and the AI agent.
 
-```
-[vowser-client] <=> [vowser-backend (Java)] <=> [vowser-mcp-server (Python)]
-```
+`[vowser-client (Kotlin)] <=> [vowser-backend (Spring Boot)] <=> [vowser-agent-server (Python)]`
 
-- **`vowser-client`**: The user-facing application (e.g., browser extension) that handles UI and executes final browser commands.
-- **`vowser-backend` (This Repository)**: Orchestrates the flow. It receives requests from the client, forwards analysis tasks to the Python server, and relays control commands to the client via WebSockets.
-- **`vowser-mcp-server`**: The AI engine that performs heavy tasks like webpage analysis, knowledge graph creation, and natural language understanding.
+- **vowser-client:** Compose Multiplatform desktop app that records voice and renders browser automation feedback.
+- **vowser-backend (This Repository):** Routes authentication, speech processing, accessibility personalization, and WebSocket control streams.
+- **vowser-agent-server:** MCP-based AI worker that interprets transcripts and generates browser actions.
 
 ## Code Structure
 
-The project follows a layered architecture to separate concerns.
-
 ```
-src
-└── main
-    └── java
-        └── com
-            └── vowser
-                └── backend
-                    ├── VowserBackendApplication.java
-                    ├── api             # 1. API Layer: Handles external requests
-                    │   ├── dto         #    - Data Transfer Objects (Request/Response)
-                    │   └── controller  #    - REST API Controllers
-                    ├── application     # 2. Application Layer: Business logic
-                    │   └── service     #    - Core service logic (caching, orchestration)
-                    └── infrastructure  # 3. Infrastructure Layer: External system integration
-                        ├── config      #    - Configuration classes (WebSocket, Google Cloud, etc.)
-                        ├── control     #    - WebSocket handlers, BrowserTool interface & implementations
-                        └── mcp         #    - MCP server integration
+.
+├── src
+│   ├── main
+│   │   ├── java/com/vowser/backend
+│   │   │   ├── VowserBackendApplication.java      # Spring Boot entry point
+│   │   │   ├── api/                               # REST controllers, DTOs, Swagger docs
+│   │   │   ├── application/                       # Orchestration services (auth, speech, control)
+│   │   │   ├── domain/                            # JPA entities and repositories
+│   │   │   ├── infrastructure/                    # Config, WebSocket, security, MCP client, tools
+│   │   │   └── common/                            # Constants, enums, exceptions, shared utilities
+│   │   └── resources/                             # Profile-specific YAML and Thymeleaf templates
+│   └── test                                       # JUnit tests with audio fixtures & configs
+├── docker-compose.yml                             # Local stack with MySQL, Redis, backend
+├── Dockerfile                                     # Production-ready image build
+└── infra/                                         # Jenkins pipeline and deployment assets
 ```
 
 ## Features
 
-- **API Gateway**: Provides stable REST APIs for the client to request analysis and query information.
-- **Real-time Control Hub**: Manages WebSocket connections with the client to relay browser control commands (e.g., click, type, go back).
-- **Performance Optimization**: Implements caching strategies to reduce redundant, costly AI analysis calls.
-- **Stateless & Scalable**: Designed to be stateless for easy horizontal scaling.
+- **Voice Pipeline Orchestrator:** Normalizes number/alphabet modes and proxies speech recognition to Naver Cloud STT and Google Cloud Speech.
+- **Authentication & Session Management:** Naver OAuth2 login, JWT issuance, and refresh token storage backed by Redis.
+- **Real-time Control Bridge:** WebSocket broker that relays MCP agent responses to connected clients with pluggable browser tools.
+- **Accessibility Personalization:** Manages encrypted accessibility profiles and exposes tailored settings to the client.
+- **Path Insights & Analytics:** Provides MCP-facing APIs for path submission, popularity tracking, and graph statistics.
+- **Operations Ready:** Ships with Actuator probes, Swagger UI, caching controls, and structured logging for production monitoring.
+
+---
 
 ## Getting Started
 
 ### Prerequisites
 
-- JDK 21
-- Gradle 8.x
+- **JDK 21**
+- **Gradle Wrapper** (included)
+- **MySQL 8.x** and **Redis 7.x** (local installations or Docker Compose)
+- Credentials for **Naver Cloud STT** and **Google Cloud Speech**
+- OAuth client credentials for **Naver Login**
 
-### Configuration
+### Environment Setup
 
-Before running the application, you need to configure the address of the Python AI engine (`vowser-mcp-server`).
+1. Create a `.env.local` file (used by `docker-compose.yml`) with the core variables:
 
-Create or modify `src/main/resources/application-local.yml` and add the following:
+   ```dotenv
+   DB_HOST=localhost
+   DB_PORT=3306
+   DB_NAME=vowser
+   DB_USERNAME=your_db_user
+   DB_PASSWORD=your_db_password
+   DB_ROOT_PASSWORD=your_root_password
+   REDIS_HOST=localhost
+   REDIS_PORT=6379
+   REDIS_PASSWORD=your_redis_password
+   JWT_SECRET=change_this_secret
+   JWT_ACCESS_TOKEN_VALIDITY=900
+   JWT_REFRESH_TOKEN_VALIDITY=1209600
+   JWT_ISSUER=vowser-backend
+   OAUTH2_NAVER_CLIENT_ID=your_oauth_client_id
+   OAUTH2_NAVER_CLIENT_SECRET=your_oauth_client_secret
+   OAUTH2_REDIRECT_URI=http://localhost:8080/login/oauth2/code/naver
+   OAUTH2_SUCCESS_REDIRECT_URL=http://localhost:5173/auth/callback
+   NAVER_CLOUD_CLIENT_ID=your_naver_cloud_id
+   NAVER_CLOUD_CLIENT_SECRET=your_naver_cloud_secret
+   NAVER_CLOUD_STT_URL=https://naveropenapi.apigw.ntruss.com/recog/v1/stt
+   GOOGLE_CREDENTIALS_JSON={"type":"service_account",...}
+   VOWSER_DB_ENCRYPTION_KEY=32_byte_hex_or_base64_key
+   ```
 
-```yaml
-mcp:
-  python:
-    server:
-      url: http://localhost:8000 # URL of the running vowser-mcp-server
-```
+2. Review `src/main/resources/application-local.yml` to adjust database or logging preferences.
+3. Ensure the MCP agent URL (`mcp.python.server.url`) points to the running `vowser-agent-server`.
 
-### Running the Application
+### Run Locally
 
 ```bash
 ./gradlew bootRun
 ```
 
-The server will start on port `8080` by default.
+The server listens on `http://localhost:8080`. Swagger UI is available at `/swagger-ui.html`, and health checks at `/actuator/health`.
 
-## API Endpoints
+### Run with Docker Compose
 
-### REST API
+```bash
+docker compose up --build
+```
 
-- `POST /api/v1/analyze`: Requests analysis of a new webpage.
-- `POST /api/v1/query`: Asks a natural language question about a webpage.
-- `GET /api/v1/graph/visualize`: Retrieves graph data in a D3.js-friendly format for visualization.
+This spins up MySQL, Redis, and the backend container. The backend is exposed on port `4001` inside the compose network.
 
-### WebSocket API
+### Companion Services
 
-- `ws://localhost:8080/control`: The endpoint for establishing a real-time control connection with the `vowser-client`. It accepts `CallToolRequest` messages to execute browser actions.
+- [vowser-client](https://github.com/Vovvser/vowser-client)
+- [vowser-agent-server](https://github.com/Vovvser/vowser-agent-server)
+
+## Roadmap
+
+- Harden WebSocket reconnection and monitoring for MCP sessions.
+- Add adaptive failover across speech providers.
+- Ship admin-facing dashboards for path analytics and tooling telemetry.
+- Expand integration tests to cover OAuth2 and speech-processing edge cases.
+
+For contribution guidelines and community standards, see [`CONTRIBUTING.md`](./CONTRIBUTING.md) and [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md).
 
 ## License
 
@@ -97,58 +128,63 @@ This project is licensed under the Apache 2.0 License.
 
 ---
 
-# Vowser Backend
+## Testing & Quality Checks
 
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![License](https://img.shields.io/badge/license-Apache_2.0-blue)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.7-brightgreen)
-![Java](https://img.shields.io/badge/Java-21-orange)
+- **All tests:** `./gradlew test`
+- **Speech pipeline focus:** `./gradlew test --tests "*speech.*"`
+- **Static checks:** `./gradlew check`
 
-Vowser 생태계를 위한 중앙 통신 및 제어 허브입니다.
+## Support & Contact
 
-이 레포지토리는 Vowser 백엔드 서버의 소스 코드를 포함하며, API 게이트웨이 및 실시간 제어 허브 역할을 수행합니다. `vowser-client`(사용자 인터페이스)와 `vowser-mcp-server`(AI 분석 엔진) 사이를 연결합니다.
+- **Security disclosures:** vowser_security@gmail.com
+
+## Releases
+
+- 0.0.1 — Initial backend alpha delivering speech processing, OAuth, and WebSocket orchestration.
+
+# Vowser-Backend (Korean)
+
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.7-brightgreen.svg?logo=spring&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-21-orange.svg?logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg?logo=mysql&logoColor=white)](https://www.mysql.com)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+Vowser의 인증, 음성 처리, 실시간 브라우저 제어를 담당하는 Vowser 백엔드 서비스를 포함합니다.
 
 ## 아키텍처
 
-Vowser는 성능과 유지보수성을 극대화하기 위해 분산 아키텍처로 동작합니다. 이 `vowser-backend` 서버는 **'척추(Spine)'** 역할을 맡아, '두뇌'와 '얼굴과 손발'을 연결합니다.
+Vowser는 분산 아키텍처로 동작합니다. `vowser-backend`는 클라이언트와 AI 에이전트를 연결하는 역할을 합니다.
 
-```
-[vowser-client] <=> [vowser-backend (Java)] <=> [vowser-mcp-server(Python)]
-```
-
-- **`vowser-client`**: UI를 처리하고 최종적인 브라우저 명령을 실행하는 사용자 대면 애플리케이션(예: 브라우저 확장 프로그램)입니다.
-- **`vowser-backend` (현재 레포지토리)**: 전체 흐름을 조율합니다. 클라이언트의 요청을 받아 분석 작업을 Python 서버에 전달하고, 제어 명령을 웹소켓을 통해 클라이언트에 중계합니다.
-- **`vowser-mcp-server`**: 웹페이지 분석, 지식 그래프 생성, 자연어 이해 등 무거운 작업을 수행하는 AI 엔진입니다.
+`[vowser-client (Kotlin)] <=> [vowser-backend (Java)] <=> [vowser-agent-server (Python)]`
 
 ## 코드 구조
 
-이 프로젝트는 역할과 책임 분리를 위한 계층형 아키텍처를 따릅니다.
-
 ```
-src
-└── main
-    └── java
-        └── com
-            └── vowser
-                └── backend
-                    ├── VowserBackendApplication.java
-                    ├── api             # 1. API 계층: 외부 요청 처리
-                    │   ├── dto         #    - 데이터 전송 객체 (Request/Response)
-                    │   └── controller  #    - REST API 컨트롤러
-                    ├── application     # 2. 애플리케이션 계층: 비즈니스 로직
-                    │   └── service     #    - 핵심 서비스 로직 (캐싱, 오케스트레이션)
-                    └── infrastructure  # 3. 인프라 계층: 외부 시스템 연동
-                        ├── config      #    - WebSocket, Google Cloud 등 설정 클래스
-                        ├── control     #    - 웹소켓 핸들러, BrowserTool 인터페이스 및 구현체
-                        └── mcp         #    - MCP 서버 연동
+.
+├── src
+│   ├── main
+│   │   ├── java/com/vowser/backend
+│   │   │   ├── VowserBackendApplication.java 
+│   │   │   ├── api/                               # REST 컨트롤러, DTO, Swagger 문서화
+│   │   │   ├── application/                       # 인증·음성·제어 등 서비스 로직
+│   │   │   ├── domain/                            # JPA 엔티티와 리포지토리
+│   │   │   ├── infrastructure/                    # 설정, WebSocket, 보안, MCP 클라이언트, 툴
+│   │   │   └── common/                            # 상수, 열거형, 예외, 공통 유틸리티
+│   │   └── resources/                             # 프로필별 YAML, Thymeleaf 템플릿
+│   └── test                                       # 오디오 픽스처를 포함한 JUnit 테스트
+├── docker-compose.yml                             # MySQL·Redis·백엔드 로컬 스택
+├── Dockerfile                                     # 운영 배포용 이미지
+└── infra/                                         # Jenkins 파이프라인 및 배포 관련 파일
 ```
 
 ## 주요 기능
 
-- **API 게이트웨이**: 클라이언트가 분석 및 정보 조회를 요청할 수 있는 안정적인 REST API를 제공합니다.
-- **실시간 제어 허브**: 클라이언트와의 웹소켓 연결을 관리하여 브라우저 제어 명령(클릭, 타이핑, 뒤로가기 등)을 중계합니다.
-- **성능 최적화**: 효율적인 메모리 관리와 비동기 처리로 높은 성능을 제공합니다.
-- **무상태 및 확장성**: 수평적 확장이 용이하도록 무상태(Stateless)로 설계되었습니다.
+- **음성 처리 파이프라인:** 숫자·알파벳 모드 정규화 후 Naver Cloud STT를 통해 음성 인식.
+- **인증 및 세션 관리:** Naver OAuth2 로그인, JWT 발급, Redis 기반 리프레시 토큰 저장.
+- **실시간 제어 브리지:** Vower-Agent-Server 응답을 WebSocket으로 클라이언트에 중계.
+- **접근성 개인화:** 암호화된 접근성 프로필을 관리하고 클라이언트에 맞춤 설정 제공.
+- **경로 인사이트 & 분석:** 경로 저장, 인기 경로 조회, 그래프 통계를 제공하는 Vower-Agent-Server 연동 API.
+- **운영 친화성:** Actuator, Swagger UI, 캐싱 제어, 구조화 로그 등 운영 모니터링 기능을 내장.
 
 ---
 
@@ -156,42 +192,90 @@ src
 
 ### 사전 요구사항
 
-- JDK 21
-- Gradle 8.x
+- **JDK 21**
+- **Gradle Wrapper** (레포지토리 포함)
+- **MySQL 8.0.43**, **Redis 7.0.15** (로컬 설치 또는 Docker Compose)
+- **Naver Cloud STT** 자격 증명
+- **Naver 로그인** OAuth 클라이언트 자격 증명
 
-### 설정
+### 환경 설정
 
-애플리케이션을 실행하기 전에, Python AI 엔진(`vowser-mcp-server`)의 주소를 설정해야 합니다.
+1. `docker-compose.yml`과 함께 사용할 `.env.local` 파일을 생성하고 필수 환경변수를 정의합니다.
 
-`src/main/resources/application-local.yml` 파일을 생성하거나 수정하여 아래 내용을 추가하세요.
+   ```dotenv
+   DB_HOST=localhost
+   DB_PORT=3306
+   DB_NAME=vowser
+   DB_USERNAME=데이터베이스_사용자
+   DB_PASSWORD=데이터베이스_비밀번호
+   DB_ROOT_PASSWORD=루트_비밀번호
+   REDIS_HOST=localhost
+   REDIS_PORT=6379
+   REDIS_PASSWORD=redis_비밀번호
+   JWT_SECRET=변경_필수_시크릿
+   JWT_ACCESS_TOKEN_VALIDITY=900
+   JWT_REFRESH_TOKEN_VALIDITY=1209600
+   JWT_ISSUER=vowser-backend
+   OAUTH2_NAVER_CLIENT_ID=OAuth_클라이언트_ID
+   OAUTH2_NAVER_CLIENT_SECRET=OAuth_클라이언트_시크릿
+   OAUTH2_REDIRECT_URI=http://localhost:8080/login/oauth2/code/naver
+   OAUTH2_SUCCESS_REDIRECT_URL=http://localhost:5173/auth/callback
+   NAVER_CLOUD_CLIENT_ID=Naver_Cloud_ID
+   NAVER_CLOUD_CLIENT_SECRET=Naver_Cloud_Secret
+   NAVER_CLOUD_STT_URL=https://naveropenapi.apigw.ntruss.com/recog/v1/stt
+   GOOGLE_CREDENTIALS_JSON={"type":"service_account",...}
+   VOWSER_DB_ENCRYPTION_KEY=32바이트_키
+   ```
 
-```yaml
-mcp:
-  python:
-    server:
-      url: http://localhost:8000 # 실행 중인 vowser-mcp-server의 주소
-```
+2. `src/main/resources/application-local.yml`을 검토하여 DB, 로깅, 캐싱 설정을 필요에 맞게 조정합니다.
+3. `mcp.python.server.url`이 실행 중인 `vowser-agent-server`를 가리키도록 확인합니다.
 
-### 애플리케이션 실행
+### 로컬 실행
 
 ```bash
 ./gradlew bootRun
 ```
 
-서버는 기본적으로 `8080` 포트에서 시작됩니다.
+기본 포트는 `http://localhost:8080`이며, Swagger UI는 `/swagger-ui.html`, 헬스 체크는 `/actuator/health`에서 확인할 수 있습니다.
 
-## API 엔드포인트
+### Docker Compose 실행
 
-### REST API
+```bash
+docker compose up --build
+```
 
-- `POST /api/v1/analyze`: 새로운 웹페이지의 분석을 요청합니다.
-- `POST /api/v1/query`: 웹페이지에 대해 자연어 질문을 합니다.
-- `GET /api/v1/graph/visualize`: D3.js 시각화를 위한 그래프 데이터를 조회합니다.
+MySQL, Redis, 백엔드 컨테이너가 함께 실행되며, 백엔드는 Compose 네트워크에서 `4001` 포트로 노출됩니다.
 
-### WebSocket API
+### 연동 서비스
 
-- `ws://localhost:8080/control`: `vowser-client`와 실시간 제어 연결을 수립하기 위한 엔드포인트입니다. 브라우저 액션을 실행하기 위한 `CallToolRequest` 메시지를 받습니다.
+- [vowser-client](https://github.com/Vovvser/vowser-client)
+- [vowser-agent-server](https://github.com/Vovvser/vowser-agent-server)
+
+## 로드맵
+
+- MCP 세션 재연결 및 모니터링 고도화
+- 음성 인식 프로바이더 자동 폴백 지원
+- 경로 분석 및 도구 텔레메트리용 관리자 대시보드 공개
+- OAuth2 및 음성 파이프라인 통합 테스트 확대
+
+기여 가이드와 커뮤니티 행동 강령은 [`CONTRIBUTING.md`](./CONTRIBUTING.md), [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md)를 참고하세요.
 
 ## 라이선스
 
 이 프로젝트는 Apache 2.0 라이선스를 따릅니다.
+
+---
+
+## 테스트 및 품질 확인
+
+- **전체 테스트:** `./gradlew test`
+- **음성 파이프라인 집중:** `./gradlew test --tests "*speech.*"`
+- **정적 검사:** `./gradlew check`
+
+## 지원 및 문의
+
+- **보안 제보:** vowser_security@gmail.com
+
+## 릴리스
+
+- 0.0.1 — 음성 처리, OAuth, WebSocket 오케스트레이션을 포함한 백엔드 알파 버전
