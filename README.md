@@ -29,8 +29,7 @@ Vowser runs on a distributed architecture. The `vowser-backend` connects the cli
 │   │   └── resources/                             # Profile-specific YAML and Thymeleaf templates
 │   └── test                                       # JUnit tests with audio fixtures
 ├── docker-compose.yml                             # Local stack with MySQL, Redis, backend
-├── Dockerfile                                     # Production-ready image build
-└── infra/                                         # Jenkins pipeline and deployment assets
+└── Dockerfile                                     # Production-ready image build
 ```
 
 ## Features
@@ -167,8 +166,7 @@ Vowser는 분산 아키텍처로 동작합니다. `vowser-backend`는 클라이�
 │   │   └── resources/                             # 프로필별 YAML, Thymeleaf 템플릿
 │   └── test                                       # 오디오 픽스처를 포함한 JUnit 테스트
 ├── docker-compose.yml                             # MySQL·Redis·백엔드 로컬 스택
-├── Dockerfile                                     # 운영 배포용 이미지
-└── infra/                                         # Jenkins 파이프라인 및 배포 관련 파일
+└── Dockerfile                                     # 운영 배포용 이미지
 ```
 
 ## 주요 기능
